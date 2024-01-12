@@ -7,7 +7,8 @@ from peft import (
     prepare_model_for_kbit_training,
 )
 from transformers import TrainingArguments, Trainer
-from datasets import load_metric
+import evaluate
+import numpy as np
 
 
 def train(
@@ -40,13 +41,26 @@ def train(
         **training_config,
     )
     data_collator = get_data_collector(base_model_config=base_model_config)
-    metric = load_metric('f1', 'accuracy')
+    
+    accuracy_metric = evaluate.load("accuracy")
+    f1_metric = evaluate.load("f1")
+
+    def compute_metrics(eval_pred):
+        logits, labels = eval_pred
+        predictions = np.argmax(logits, axis=-1)
+        metrics = accuracy_metric.compute(predictions=predictions, references=labels)
+        metrics = metrics | f1_metric.compute(predictions=predictions, references=labels, average='micro')
+        metrics['f1_micro'] = metrics.pop('f1')
+        metrics = metrics | f1_metric.compute(predictions=predictions, references=labels, average='macro')
+        metrics['f1_macro'] = metrics.pop('f1')
+        return metrics
+
     trainer = Trainer(
             model=model,
             train_dataset=data_dict["train"],
             eval_dataset=data_dict["validation"],
             args=training_arguments,
-            compute_metrics=metric,
+            compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
     trainer.train()

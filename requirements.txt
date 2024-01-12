@@ -5,4 +5,4 @@ datasets
 peft
 bitsandbytes
 wandb
-scikit-learn
+evaluate
