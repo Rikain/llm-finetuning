@@ -42,12 +42,18 @@ def train(
     )
     data_collator = get_data_collector(base_model_config=base_model_config)
     
-    accuracy_metric = evaluate.load("accuracy")
-    f1_metric = evaluate.load("f1")
+    if base_model_config['problem_type'] == 'multi_label_classification':
+        accuracy_metric = evaluate.load('accuracy', 'multilabel')
+        f1_metric = evaluate.load('f1', 'multilabel')
+    else:
+        accuracy_metric = evaluate.load('accuracy')
+        f1_metric = evaluate.load('f1')
 
     def compute_metrics(eval_pred):
         logits, labels = eval_pred
-        predictions = np.argmax(logits, axis=-1)
+        predictions = logits > 0
+        predictions = np.intc(predictions)
+        labels = np.intc(labels)
         metrics = accuracy_metric.compute(predictions=predictions, references=labels)
         metrics = metrics | f1_metric.compute(predictions=predictions, references=labels, average='micro')
         metrics['f1_micro'] = metrics.pop('f1')
@@ -57,8 +63,8 @@ def train(
 
     trainer = Trainer(
             model=model,
-            train_dataset=data_dict["train"],
-            eval_dataset=data_dict["validation"],
+            train_dataset=data_dict['train'],
+            eval_dataset=data_dict['validation'],
             args=training_arguments,
             compute_metrics=compute_metrics,
             data_collator=data_collator,
