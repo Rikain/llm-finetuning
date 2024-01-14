@@ -41,7 +41,7 @@ def train(
         **training_config,
     )
     data_collator = get_data_collector(base_model_config=base_model_config)
-    
+
     if base_model_config['problem_type'] == 'multi_label_classification':
         accuracy_metric = evaluate.load('accuracy', 'multilabel')
         f1_metric = evaluate.load('f1', 'multilabel')
@@ -71,5 +71,6 @@ def train(
         )
     trainer.train()
     trainer.save_model()
-    trainer.evaluate(eval_dataset=data_dict['test'])
+    scores = trainer.evaluate(eval_dataset=data_dict['test'])
+    print('Test_scores', scores)
     return
