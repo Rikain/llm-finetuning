@@ -1,5 +1,7 @@
 from src.utils import get_tokenizer, get_data_collector
-from src.lora_utils import print_trainable_parameters, find_all_linear_names
+from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
+    check_gradients, add_modules_to_save
+
 
 from peft import (
     LoraConfig,
@@ -28,10 +30,15 @@ def train(
                 model=model,
                 quantization_config=quantization_config
             )
-        lora_config = LoraConfig(
+
+        lora_config = add_modules_to_save(model=model, lora_config=lora_config)
+
+        lora_configuration = LoraConfig(
             **lora_config,
         )
-        model = get_peft_model(model, lora_config)
+        model = get_peft_model(model, lora_configuration)
+
+        assert check_gradients(model=model, lora_config=lora_config)
 
         print_trainable_parameters(
             model=model,

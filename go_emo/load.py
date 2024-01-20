@@ -8,7 +8,7 @@ from datasets import DatasetDict
 def load(base_model_config, tokenizer):
     base_model = base_model_config['base_model_name']
     max_seq_length = base_model_config['max_seq_length']
-    personalized = True,
+    personalized = False
     instruct = True
     train, val, test = prepare(
         base_model=base_model,

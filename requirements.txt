@@ -6,3 +6,4 @@ peft
 bitsandbytes
 wandb
 evaluate
+scikit-learn

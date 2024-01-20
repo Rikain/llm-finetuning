@@ -1,6 +1,12 @@
+from pathlib import Path
+
+
 from transformers import (
+    AutoModelForPreTraining,
     AutoModelForSequenceClassification,
     BitsAndBytesConfig,
+    AutoConfig,
+    T5Config,
 )
 from peft import PeftModel
 
@@ -11,6 +17,15 @@ def load_finetuned(base_model, model_checkpoint_path):
         model_checkpoint_path,
     )
     return ft_model
+
+
+def _update_quantization_config(base_model_name, quantization_config):
+    config = AutoConfig.from_pretrained(base_model_name)
+    if isinstance(config, T5Config):
+        quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
+    else:
+        quantization_config['llm_int8_skip_modules'] = ['score']
+    return quantization_config
 
 
 def _bnb_quantization_config(quantization_config):
@@ -29,6 +44,10 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
     base_model_name = base_model_config['base_model_name']
     num_labels = base_model_config['num_labels']
     problem_type = base_model_config['problem_type']
+    quantization_config = _update_quantization_config(
+        base_model_name=base_model_name,
+        quantization_config=quantization_config
+    )
     quantization_config = _bnb_quantization_config(quantization_config)
     model = AutoModelForSequenceClassification.from_pretrained(
         pretrained_model_name_or_path=base_model_name,

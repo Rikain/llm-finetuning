@@ -27,10 +27,63 @@ def print_trainable_parameters(model, quantization_config):
     )
 
 
+def get_classification_head_name(model):
+    classification_head = None
+    if hasattr(model, 'classification_head'):
+        classification_head = 'classification_head'
+    elif hasattr(model.base_model, 'model') and hasattr(model.base_model.model, 'score'):
+        classification_head = 'score'
+    assert classification_head is not None
+    return classification_head
+
+
+def check_gradients(model, lora_config):
+    classification_head_name = get_classification_head_name(model)
+    if lora_config['task_type'] == 'SEQ_CLS':
+        if classification_head_name == 'score':
+            assert not model.base_model.model.score.original_module.weight.requires_grad
+            assert model.base_model.model.score.modules_to_save["default"].weight.requires_grad
+            assert model.base_model.model.score.active_adapter == 'default'
+            assert (torch.allclose(
+                model.base_model.model.score.modules_to_save["default"].weight,
+                model.base_model.model.score.original_module.weight
+            ))
+        else:
+            # TO DO FOR T5 model
+            return True
+    return True
+
+
+def add_modules_to_save(model, lora_config):
+    modules_to_save = None
+    if lora_config['task_type'] == 'SEQ_CLS':
+        modules_to_save = []
+        classification_head = get_classification_head_name(model)
+        if classification_head == 'classification_head':
+            for module_name, module in model.classification_head.named_modules():
+                if module_name not in lora_config['target_modules']:
+                    if isinstance(module, torch.nn.Linear):
+                        modules_to_save.append(module_name)
+        else:
+            modules_to_save.append(classification_head)
+    lora_config['modules_to_save'] = modules_to_save
+    print('modules_to_save', modules_to_save)
+    return lora_config
+
+
 def find_all_linear_names(model, quantization_config):
     """
     Find modules to apply LoRA to.
     """
+    if hasattr(model, 'classification_head'):
+        # (Expected for For T5ForSequenceClassification)
+        possible_modules_to_save = ['dense', 'out_proj']
+    elif hasattr(model, 'score'):
+        # (Expected for LlamaForSequenceClassification)
+        possible_modules_to_save = ['score']
+    else:
+        # Propably a class not accounted for.
+        raise Exception('Propably a class not accounted for.')
     if ('load_in_4bit' in quantization_config and
         quantization_config['load_in_4bit']) \
             or ('load_in_8bit' in quantization_config and
@@ -43,9 +96,8 @@ def find_all_linear_names(model, quantization_config):
         if any([isinstance(module, c) for c in classes]):
             names = name.split('.')
             lora_module_names.add(names[0] if len(names) == 1 else names[-1])
-    if 'lm_head' in lora_module_names:
-        lora_module_names.remove('lm_head')
-    if 'score' in lora_module_names:
-        lora_module_names.remove('score')
+    for lm_head in possible_modules_to_save:
+        if lm_head in lora_module_names:
+            lora_module_names.remove(lm_head)
     print('Modules to apply LORA to:', list(lora_module_names))
     return list(lora_module_names)
