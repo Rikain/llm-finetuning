@@ -3,6 +3,9 @@ from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
     check_gradients, add_modules_to_save
 
 
+import shutil
+
+
 from peft import (
     LoraConfig,
     get_peft_model,
@@ -72,15 +75,16 @@ def train(
         return metrics
 
     trainer = Trainer(
-            model=model,
-            train_dataset=data_dict['train'],
-            eval_dataset=data_dict['validation'],
-            args=training_arguments,
-            compute_metrics=compute_metrics,
-            data_collator=data_collator,
-        )
+        model=model,
+        train_dataset=data_dict['train'],
+        eval_dataset=data_dict['validation'],
+        args=training_arguments,
+        compute_metrics=compute_metrics,
+        data_collator=data_collator,
+    )
     trainer.train()
     trainer.save_model()
+    shutil.copy2('config.ini', training_config['output_dir'])
     scores = trainer.evaluate(eval_dataset=data_dict['test'])
     print('Test_scores', scores)
     return
