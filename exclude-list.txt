@@ -1,0 +1,7 @@
+*venv/
+*__pycache__
+.git*
+.dvc
+out/
+wandb/
+data/goemotions/major-vote

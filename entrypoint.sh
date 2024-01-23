@@ -6,3 +6,5 @@ which pip
 which python
 
 pip install -r requirements.txt
+
+python main.py

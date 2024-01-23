@@ -3,6 +3,8 @@ from src.go_emo.prepare_goemotions import EMOTIONS
 
 
 from datasets import DatasetDict
+from pathlib import Path
+
 
 
 def load(base_model_config, data_config, tokenizer):

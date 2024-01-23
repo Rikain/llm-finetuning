@@ -25,7 +25,7 @@ def main():
     tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
     data_dict, num_labels = dataset_functions.load(
         base_model_config,
-        config['paths'],
+        data_config,
         tokenizer
     )
     base_model_config['num_labels'] = num_labels
