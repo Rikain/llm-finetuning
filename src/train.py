@@ -57,7 +57,10 @@ def train(
         f1_metric = evaluate.load('f1')
 
     def compute_metrics(eval_pred):
-        logits, labels = eval_pred
+        logits = eval_pred[0]
+        if isinstance(logits, tuple):  # Idk why it is sometimes tuple.
+            logits = logits[0]
+        labels = eval_pred[1]
         predictions = logits > 0
         predictions = np.intc(predictions)
         labels = np.intc(labels)
