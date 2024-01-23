@@ -72,5 +72,6 @@ def parse_config(config):
     else:
         quantization_config = None
     training_config = config['training_config']
+    data_config = config['data_config']
     return base_model_config, lora_config, quantization_config, \
-        training_config
+        training_config, data_config

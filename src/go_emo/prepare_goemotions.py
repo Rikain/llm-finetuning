@@ -21,19 +21,19 @@ EMOTIONS = [
     'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief',
     'remorse', 'sadness', 'surprise', 'neutral'
 ]
-COLUMNS = ["rater_id", "text"] + list(EMOTIONS)
+COLUMNS = ["rater_id", "text"] + list(EMOTIONS) # "rater_id",
 
 def prepare(
     base_model: str,
     max_seq_length: int,
     tokenizer,
-    train_csv_path: Path = Path("go_emo/data/train.csv"),
-    val_csv_path: Path  = Path("go_emo/data/val.csv"),
-    test_csv_path: Path  = Path("go_emo/data/test.csv"),
+    personalized: bool,
+    instruct: bool,
+    train_csv_path: Path = Path("data/personalized/train.csv"),
+    val_csv_path: Path  = Path("data/personalized/val.csv"),
+    test_csv_path: Path  = Path("data/personalized/test.csv"),
     mask_inputs: bool = False,
     ignore_index: int = -1,
-    personalized: bool = True,
-    instruct: bool = True
 ) -> None:
     """Prepare a CSV dataset for instruction tuning.
 
@@ -111,7 +111,7 @@ def prepare(
     
 
 def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool, ignore_index: int,
-                   personalized: bool = True, instruct: bool = True) -> dict:
+                   personalized: bool, instruct: bool) -> dict:
     """Processes a single sample.
 
     Each sample in the dataset consists of:
@@ -135,7 +135,7 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
     # encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
 
     # The labels are the list of 0s and 1s of emotions
-    labels = [float(int(example[emotion])) for emotion in EMOTIONS]
+    labels = [float(example[emotion]) for emotion in EMOTIONS]
     
     return {
         **example,
