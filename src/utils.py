@@ -1,10 +1,14 @@
 """Utility functions to use across multiple independent files."""
 import ast
 from configparser import ConfigParser
+from importlib.machinery import SourceFileLoader
+from pathlib import Path
 
 
+import evaluate
+import numpy as np
 import torch
-from transformers import AutoTokenizer, DataCollatorWithPadding
+from transformers import AutoTokenizer, DataCollatorWithPadding, set_seed
 
 
 def get_tokenizer(base_model, max_seq_length):
@@ -60,8 +64,75 @@ def read_config(config_file='config.ini'):
     return config_dict
 
 
+def seed_everything(seed=42):
+    set_seed(seed)
+    return
+
+
+def prepare_configuration():
+    config = read_config()
+    base_model_config, lora_config, quantization_config, \
+        training_config, data_config, seed = parse_config(
+            config=config
+            )
+    if quantization_config is not None:
+        assert lora_config is not None
+    dataset_loader_folder = Path("src") / config['paths']['dataset_loader_folder']
+    dataset_functions = SourceFileLoader(
+        "dataset_module", (dataset_loader_folder / 'load.py').as_posix()
+    ).load_module()
+    base_model = base_model_config['base_model_name']
+    max_seq_length = base_model_config['max_seq_length']
+    tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
+    data_dict, num_labels = dataset_functions.load(
+        base_model_config,
+        data_config,
+        tokenizer
+    )
+    base_model_config['num_labels'] = num_labels
+    return seed, base_model_config, lora_config, quantization_config, \
+        training_config, data_dict, pad_token_id
+
+
+def get_metrics_evaluators(base_model_config):
+    if base_model_config['problem_type'] == 'multi_label_classification':
+        accuracy_metric = evaluate.load('accuracy', 'multilabel')
+        f1_metric = evaluate.load('f1', 'multilabel')
+    else:
+        accuracy_metric = evaluate.load('accuracy')
+        f1_metric = evaluate.load('f1')
+
+    def compute_metrics(eval_pred):
+        logits = eval_pred[0]
+        if isinstance(logits, tuple):  # Idk why it is sometimes tuple.
+            logits = logits[0]
+        labels = eval_pred[1]
+        predictions = logits > 0
+        predictions = np.intc(predictions)
+        labels = np.intc(labels)
+        metrics = accuracy_metric.compute(
+            predictions=predictions,
+            references=labels,
+        )
+        metrics = metrics | f1_metric.compute(
+            predictions=predictions,
+            references=labels,
+            average='micro'
+        )
+        metrics['f1_micro'] = metrics.pop('f1')
+        metrics = metrics | f1_metric.compute(
+            predictions=predictions,
+            references=labels,
+            average='macro',
+        )
+        metrics['f1_macro'] = metrics.pop('f1')
+        return metrics
+    return (accuracy_metric, f1_metric), compute_metrics
+
+
 def parse_config(config):
     general_config = config['general']
+    seed = general_config['seed']
     base_model_config = config['base_model_config']
     if general_config['use_lora']:
         lora_config = config['lora_config']
@@ -74,4 +145,4 @@ def parse_config(config):
     training_config = config['training_config']
     data_config = config['data_config']
     return base_model_config, lora_config, quantization_config, \
-        training_config, data_config
+        training_config, data_config, seed

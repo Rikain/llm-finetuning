@@ -1,4 +1,4 @@
-from model.load import load_finetuned
+from src.model.load import load_finetuned
 from src.utils import prepare_configuration, seed_everything, \
       get_data_collector, get_metrics_evaluators
 

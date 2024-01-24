@@ -1,8 +1,4 @@
-from pathlib import Path
-
-
 from transformers import (
-    AutoModelForPreTraining,
     AutoModelForSequenceClassification,
     BitsAndBytesConfig,
     AutoConfig,
@@ -11,7 +7,17 @@ from transformers import (
 from peft import PeftModel
 
 
-def load_finetuned(base_model, model_checkpoint_path):
+def load_finetuned(
+        base_model_config,
+        model_checkpoint_path,
+        quantization_config=None,
+        pad_token_id=None
+        ):
+    base_model = get_model(
+        base_model_config=base_model_config,
+        quantization_config=quantization_config,
+        pad_token_id=pad_token_id,
+    )
     ft_model = PeftModel.from_pretrained(
         base_model,
         model_checkpoint_path,

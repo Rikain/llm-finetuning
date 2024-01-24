@@ -1,4 +1,4 @@
-from src.utils import get_tokenizer, get_data_collector
+from src.utils import get_data_collector, get_metrics_evaluators
 from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
     check_gradients, add_modules_to_save
 
@@ -12,8 +12,6 @@ from peft import (
     prepare_model_for_kbit_training,
 )
 from transformers import TrainingArguments, Trainer
-import evaluate
-import numpy as np
 
 
 def train(
@@ -52,27 +50,9 @@ def train(
     )
     data_collator = get_data_collector(base_model_config=base_model_config)
 
-    if base_model_config['problem_type'] == 'multi_label_classification':
-        accuracy_metric = evaluate.load('accuracy', 'multilabel')
-        f1_metric = evaluate.load('f1', 'multilabel')
-    else:
-        accuracy_metric = evaluate.load('accuracy')
-        f1_metric = evaluate.load('f1')
-
-    def compute_metrics(eval_pred):
-        logits = eval_pred[0]
-        if isinstance(logits, tuple):  # Idk why it is sometimes tuple.
-            logits = logits[0]
-        labels = eval_pred[1]
-        predictions = logits > 0
-        predictions = np.intc(predictions)
-        labels = np.intc(labels)
-        metrics = accuracy_metric.compute(predictions=predictions, references=labels)
-        metrics = metrics | f1_metric.compute(predictions=predictions, references=labels, average='micro')
-        metrics['f1_micro'] = metrics.pop('f1')
-        metrics = metrics | f1_metric.compute(predictions=predictions, references=labels, average='macro')
-        metrics['f1_macro'] = metrics.pop('f1')
-        return metrics
+    metrics, compute_metrics = get_metrics_evaluators(
+        base_model_config=base_model_config
+    )
 
     trainer = Trainer(
         model=model,
