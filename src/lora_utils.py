@@ -31,8 +31,10 @@ def get_classification_head_name(model):
     classification_head = None
     if hasattr(model, 'classification_head'):
         classification_head = 'classification_head'
-    elif hasattr(model.base_model, 'model') and hasattr(model.base_model.model, 'score'):
+    elif hasattr(model, 'score') or (hasattr(model.base_model, 'model') and hasattr(model.base_model.model, 'score')):
         classification_head = 'score'
+    # elif :
+    #     classification_head = 'score'
     assert classification_head is not None
     return classification_head
 
