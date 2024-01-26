@@ -47,9 +47,10 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
     Multilabel classification labels need to be float values because of the loss function
     that is used in AutoModelForSequenceClassification for multilabel classification.
     """
-    base_model_name = base_model_config['base_model_name']
+    base_model_name = base_model_config['pretrained_model_name_or_path']
     num_labels = base_model_config['num_labels']
     problem_type = base_model_config['problem_type']
+    attn_implementation = base_model_config['attn_implementation']
     quantization_config = _update_quantization_config(
         base_model_name=base_model_name,
         quantization_config=quantization_config
@@ -61,6 +62,7 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
         quantization_config=quantization_config,
         num_labels=num_labels,
         problem_type=problem_type,
+        attn_implementation=attn_implementation,
     )
     if pad_token_id is not None:
         model.config.pad_token_id = pad_token_id

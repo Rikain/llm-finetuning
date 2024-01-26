@@ -29,7 +29,7 @@ def get_tokenizer(base_model, max_seq_length):
 
 def get_data_collector(base_model_config): 
     tokenizer, _ = get_tokenizer(
-        base_model=base_model_config['base_model_name'],
+        base_model=base_model_config['pretrained_model_name_or_path'],
         max_seq_length=base_model_config['max_seq_length']
     )
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
@@ -81,7 +81,7 @@ def prepare_configuration():
     dataset_functions = SourceFileLoader(
         "dataset_module", (dataset_loader_folder / 'load.py').as_posix()
     ).load_module()
-    base_model = base_model_config['base_model_name']
+    base_model = base_model_config['pretrained_model_name_or_path']
     max_seq_length = base_model_config['max_seq_length']
     tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
     data_dict, num_labels = dataset_functions.load(
@@ -143,6 +143,7 @@ def parse_config(config):
     else:
         quantization_config = None
     training_config = config['training_config']
+    training_config['seed'] = seed
     data_config = config['data_config']
     return base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed
