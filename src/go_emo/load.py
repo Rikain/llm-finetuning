@@ -30,4 +30,4 @@ def load(base_model_config, data_config, tokenizer):
             }
         )
     num_labels = len(EMOTIONS)
-    return data_dict, num_labels
+    return data_dict, num_labels, EMOTIONS

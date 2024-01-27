@@ -1,0 +1,9 @@
+data/
+__pycache__/
+venv/
+wandb/
+checkpoint*
+exclude-list.txt
+include-list.txt
+entrypoint.sh
+real-config.ini
