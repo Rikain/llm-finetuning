@@ -1,0 +1,5 @@
+outs:
+- md5: fcf40caa413fba091cd813e864db8b41
+  size: 142834432
+  hash: md5
+  path: doccano_2.jsonl

@@ -1,0 +1,5 @@
+[core]
+    remote = storage
+['remote "storage"']
+    url = s3://projects/llm-finetuning
+    endpointurl = https://s3.clarin-pl.eu

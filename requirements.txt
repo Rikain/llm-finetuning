@@ -7,3 +7,4 @@ wandb
 evaluate
 flash_attn
 scikit-learn
+dvc[s3]
