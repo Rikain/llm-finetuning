@@ -1,13 +1,14 @@
 """Utility functions to use across multiple independent files."""
 import ast
-from configparser import ConfigParser
-from importlib.machinery import SourceFileLoader
+
 from pathlib import Path
+from configparser import ConfigParser
 
-
-import evaluate
 import numpy as np
+import evaluate
 import torch
+
+from src.datasets import load
 from transformers import AutoTokenizer, DataCollatorWithPadding, set_seed
 
 
@@ -71,28 +72,30 @@ def seed_everything(seed=42):
     return
 
 
-def prepare_configuration():
+def prepare_configuration(data_class):
     config = read_config()
     base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed = parse_config(
             config=config
-            )
+        )
+    
     if quantization_config is not None:
         assert lora_config is not None
-    dataset_loader_folder = Path("src") / config['paths']['dataset_loader_folder']
-    dataset_functions = SourceFileLoader(
-        "dataset_module", (dataset_loader_folder / 'load.py').as_posix()
-    ).load_module()
     base_model = base_model_config['pretrained_model_name_or_path']
+
     max_seq_length = base_model_config['max_seq_length']
     tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
-    data_dict, num_labels, label_names = dataset_functions.load(
+
+    data_dict, num_labels, label_names = load(
         base_model_config,
         data_config,
-        tokenizer
+        tokenizer,
+        data_class
     )
+
     base_model_config['num_labels'] = num_labels
     base_model_config['label_names'] = label_names
+
     return seed, base_model_config, lora_config, quantization_config, \
         training_config, data_dict, pad_token_id
 
