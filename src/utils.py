@@ -1,15 +1,18 @@
 """Utility functions to use across multiple independent files."""
 import ast
 
+import torch
+import evaluate
+import numpy as np
+
 from pathlib import Path
 from configparser import ConfigParser
 
-import numpy as np
-import evaluate
-import torch
+from transformers import set_seed
+from transformers import AutoTokenizer, DataCollatorWithPadding
 
 from src.datasets import load
-from transformers import AutoTokenizer, DataCollatorWithPadding, set_seed
+from src.datasets import GoEmo, Unhealthy, Docanno
 
 
 def get_tokenizer(base_model, max_seq_length):
@@ -72,11 +75,21 @@ def seed_everything(seed=42):
     return
 
 
-def prepare_configuration(data_class):
+def prepare_configuration():
     config = read_config()
     base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed = parse_config(
             config=config
+        )
+    
+    try:
+        # Try to check if data_class has been imported
+        data_class = data_config['data_class']
+        data_class = eval(data_class)
+    except NameError:
+        raise Exception(
+            f"The dataset class `{data_class}` does not exist. "
+            "Change your `data_class` property in `config.ini` to one of src.datasets classes."
         )
     
     if quantization_config is not None:
