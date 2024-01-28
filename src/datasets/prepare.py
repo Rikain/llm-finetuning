@@ -73,12 +73,43 @@ class GoEmo(MetaDataClass):
 
 class Unhealthy(MetaDataClass):
 
+    labels = [
+        "antagonize", "condescending" , "dismissive", "generalisation",
+        "generalisation_unfair", "healthy", "hostile", "sarcastic"
+    ]
+    
+    columns = ["_unit_id", "comment", "_trust", "_worker_id"] + list(labels)
+
     def __init__(self):
         super(MetaDataClass, self).__init__()
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        pass
+        if instruct:
+            if personalized:
+                return (
+                    "Categorize the following text for the specified user by selecting the most appropriate emotion from the provided list."
+                    "Emotions can be subtle or overt, so analyze the text carefully to make an accurate classification.\n\n"
+                    f"### User ID:\n{example['_worker_id']}\n\n"
+                    f"### Text:\n{example['comment']}\n\n"
+                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Response:"
+                )
+            else:
+                return (
+                    "Categorize the following text by selecting the most appropriate emotion from the provided list."
+                    "Emotions can be subtle or overt, so analyze the text carefully to make an accurate classification.\n\n"
+                    f"### Text:\n{example['comment']}\n\n"
+                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Response:"
+                )
+        else:
+            if personalized:
+                return (
+                    f"{example['_worker_id']}\n{example['comment']}"
+                )
+            else:
+                return example['comment']
 
 
 class Docanno(MetaDataClass):
