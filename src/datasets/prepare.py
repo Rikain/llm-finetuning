@@ -187,7 +187,7 @@ def prepare(
     
 
 def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool, ignore_index: int,
-                   personalized: bool, instruct: bool, encode_labels: bool, data_class: MetaDataset) -> dict:
+                   personalized: bool, instruct: bool, encode_labels: bool, data_class: MetaDataClass) -> dict:
     """Processes a single sample.
 
     Each sample in the dataset consists of:

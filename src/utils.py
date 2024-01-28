@@ -99,7 +99,6 @@ def prepare_configuration():
     max_seq_length = base_model_config['max_seq_length']
     tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
 
-    import pudb; pudb.set_trace()
     data_dict, num_labels, label_names = load(
         base_model_config,
         data_config,
