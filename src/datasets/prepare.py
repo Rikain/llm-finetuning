@@ -34,7 +34,7 @@ class GoEmo(MetaDataClass):
         'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief',
         'remorse', 'sadness', 'surprise', 'neutral'
     ]
-    columns = ["rater_id", "text"] + list(labels)
+    columns = ["rater_id", "text"] + labels
 
     def __init__(self):
         super(MetaDataClass, self).__init__()
@@ -47,8 +47,10 @@ class GoEmo(MetaDataClass):
         if instruct:
             if personalized:
                 return (
-                    "Categorize the following text for the specified user by selecting the most appropriate emotion from the provided list."
-                    "Emotions can be subtle or overt, so analyze the text carefully to make an accurate classification.\n\n"
+                    "Categorize the following text for the specified user by selecting the "
+                    "most appropriate emotion from the provided list. Emotions can be subtle "
+                    "or overt, so analyze the text carefully to make an accurate "
+                    "classification.\n\n"
                     f"### User ID:\n{example['rater_id']}\n\n"
                     f"### Text:\n{example['text']}\n\n"
                     "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
@@ -56,8 +58,9 @@ class GoEmo(MetaDataClass):
                 )
             else:
                 return (
-                    "Categorize the following text by selecting the most appropriate emotion from the provided list."
-                    "Emotions can be subtle or overt, so analyze the text carefully to make an accurate classification.\n\n"
+                    "Categorize the following text by selecting the most appropriate emotion "
+                    "from the provided list. Emotions can be subtle or overt, so analyze the "
+                    "text carefully to make an accurate classification.\n\n"
                     f"### Text:\n{example['text']}\n\n"
                     "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
                     "### Response:"
@@ -78,7 +81,7 @@ class Unhealthy(MetaDataClass):
         "generalisation_unfair", "healthy", "hostile", "sarcastic"
     ]
     
-    columns = ["_unit_id", "comment", "_trust", "_worker_id"] + list(labels)
+    columns = ["_unit_id", "comment", "_trust", "_worker_id"] + labels
 
     def __init__(self):
         super(MetaDataClass, self).__init__()
@@ -88,8 +91,12 @@ class Unhealthy(MetaDataClass):
         if instruct:
             if personalized:
                 return (
-                    "Categorize the following text for the specified user by selecting the most appropriate emotion from the provided list."
-                    "Emotions can be subtle or overt, so analyze the text carefully to make an accurate classification.\n\n"
+                    "Categorize the following text for the specified user by selecting "
+                    "the most appropriate label from the provided list. Labels represent "
+                    "different types of communication styles or tones, where each category denotes "
+                    "a specific attitude or approach that someone might exhibit when communicating "
+                    "with others. Analyze text carefully to make an accurate "
+                    "categorization.\n\n"
                     f"### User ID:\n{example['_worker_id']}\n\n"
                     f"### Text:\n{example['comment']}\n\n"
                     "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
@@ -97,8 +104,11 @@ class Unhealthy(MetaDataClass):
                 )
             else:
                 return (
-                    "Categorize the following text by selecting the most appropriate emotion from the provided list."
-                    "Emotions can be subtle or overt, so analyze the text carefully to make an accurate classification.\n\n"
+                    "Categorize the following text by selecting the most appropriate label "
+                    "from the provided list. Labels represent different types of communication "
+                    "styles or tones, where each category denotes a specific attitude or approach "
+                    "that someone might exhibit when communicating with others. Analyze text carefully "
+                    "to make an accurate categorization.\n\n"
                     f"### Text:\n{example['comment']}\n\n"
                     "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
                     "### Response:"
@@ -114,12 +124,52 @@ class Unhealthy(MetaDataClass):
 
 class Docanno(MetaDataClass):
 
+    labels = [
+        'inspiring', 'interesting', 'offensive_to_someone', 'negative',
+        'offensive_to_me', 'political', 'positive', 'sadness', 'calm',
+        'fear', 'compassion', 'disgust', 'vulgar', 'surprise', 'embarrasing',
+        'anger', 'understandable', 'ironic', 'need_more_information',
+        'happiness', 'delight', 'funny_to_someone', 'funny_to_me'
+    ]
+
+    columns = ['text_id', 'user_id', 'fold', 'text'] + labels
+
     def __init__(self):
         super(MetaDataClass, self).__init__()
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        pass
+        if instruct:
+            if personalized:
+                return (
+                    "Categorize the following text for the specified user by selecting "
+                    "the most appropriate label from the provided list. These labels represent "
+                    "a range of emotions, attitudes, and perceptions that can be associated with "
+                    "communication, content, or reactions to various situations. Analyze text carefully "
+                    "to make an accurate categorization.\n\n"
+                    f"### User ID:\n{example['user_id']}\n\n"
+                    f"### Text:\n{example['text']}\n\n"
+                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Response:"
+                )
+            else:
+                return (
+                    "Categorize the following text by selecting the most appropriate "
+                    "label from the provided list. These labels represent a range of "
+                    "emotions, attitudes, and perceptions that can be associated with "
+                    "communication, content, or reactions to various situations. Analyze "
+                    "text carefully to make an accurate categorization.\n\n"
+                    f"### Text:\n{example['text']}\n\n"
+                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Response:"
+                )
+        else:
+            if personalized:
+                return (
+                    f"{example['user_id']}\n{example['text']}"
+                )
+            else:
+                return example['text']
 
 
 def prepare(
