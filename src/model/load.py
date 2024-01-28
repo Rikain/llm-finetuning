@@ -1,5 +1,6 @@
 from transformers import (
     AutoModelForSequenceClassification,
+    AutoModelForCausalLM,
     BitsAndBytesConfig,
     AutoConfig,
     T5Config,
@@ -56,14 +57,24 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
         quantization_config=quantization_config
     )
     quantization_config = _bnb_quantization_config(quantization_config)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        pretrained_model_name_or_path=base_model_name,
-        device_map="auto",
-        quantization_config=quantization_config,
-        num_labels=num_labels,
-        problem_type=problem_type,
-        attn_implementation=attn_implementation,
-    )
+    if problem_type == 'generative_multi_label_classification':
+        model = AutoModelForCausalLM.from_pretrained(
+            pretrained_model_name_or_path=base_model_name,
+            device_map="auto",
+            quantization_config=quantization_config,
+            num_labels=num_labels,
+            problem_type=problem_type,
+            attn_implementation=attn_implementation,
+        )
+    else:
+        model = AutoModelForSequenceClassification.from_pretrained(
+            pretrained_model_name_or_path=base_model_name,
+            device_map="auto",
+            quantization_config=quantization_config,
+            num_labels=num_labels,
+            problem_type=problem_type,
+            attn_implementation=attn_implementation,
+        )
     if pad_token_id is not None:
         model.config.pad_token_id = pad_token_id
     return model
