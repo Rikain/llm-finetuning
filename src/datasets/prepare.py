@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 sys.path.append(str(wd))
 
 
-class MetaDataset:
+class MetaDataClass:
 
     __metaclass__ = abc.ABCMeta
 
@@ -25,7 +25,7 @@ class MetaDataset:
         pass
 
 
-class GoEmo(MetaDataset):
+class GoEmo(MetaDataClass):
 
     labels = [
         'admiration','amusement', 'anger', 'annoyance', 'approval', 'caring',
@@ -37,7 +37,7 @@ class GoEmo(MetaDataset):
     columns = ["rater_id", "text"] + list(labels)
 
     def __init__(self):
-        super(MetaDataset, self).__init__()
+        super(MetaDataClass, self).__init__()
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
@@ -71,20 +71,20 @@ class GoEmo(MetaDataset):
                 return example['text']
 
 
-class Unhealthy(MetaDataset):
+class Unhealthy(MetaDataClass):
 
     def __init__(self):
-        super(MetaDataset, self).__init__()
+        super(MetaDataClass, self).__init__()
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
         pass
 
 
-class Docanno(MetaDataset):
+class Docanno(MetaDataClass):
 
     def __init__(self):
-        super(MetaDataset, self).__init__()
+        super(MetaDataClass, self).__init__()
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
@@ -97,7 +97,7 @@ def prepare(
     tokenizer,
     personalized: bool,
     instruct: bool,
-    data_class: MetaDataset,
+    data_class: MetaDataClass,
     train_csv_path: Path = Path("data/personalized/train.csv"),
     val_csv_path: Path  = Path("data/personalized/val.csv"),
     test_csv_path: Path  = Path("data/personalized/test.csv"),
