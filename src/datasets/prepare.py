@@ -196,7 +196,6 @@ def prepare(
 
     # loading train set
     df_train = pd.read_csv(train_csv_path, dtype=str).fillna("")[data_class.columns]
-    # import pudb; pudb.set_trace()
     if not (df_train.columns.values == data_class.columns).all():
         raise ValueError(f"Train CSV columns must be {data_class.columns}, found {df_train.columns.values}")
     train_data = json.loads(df_train.to_json(orient="records", indent=4))
@@ -291,10 +290,7 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
     encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
     # encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
 
-    try:
-        labels = {label: float(example[label]) for label in data_class.labels}
-    except Exception:
-        import pudb; pudb.set_trace()
+    labels = {label: float(example[label]) for label in data_class.labels}
     # When `encode_labels` is True => the labels are the list of 0s and 1s of emotions
     # Otherwise => the labels are concatenated into a single string
     labels = list(labels.values()) if encode_labels else ", ".join(labels.keys())
