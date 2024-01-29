@@ -31,6 +31,14 @@ def get_tokenizer(base_model, max_seq_length):
     return tokenizer, pad_token_id
 
 
+def formatting_prompts_func(example):
+    output_texts = []
+    for i in range(len(example['full_prompt'])):
+        text = f"{example['full_prompt'][i]}{example['text_labels'][i]}"
+        output_texts.append(text)
+    return output_texts
+
+
 def get_data_collector(base_model_config): 
     tokenizer, _ = get_tokenizer(
         base_model=base_model_config['pretrained_model_name_or_path'],
@@ -117,8 +125,6 @@ def get_metrics_evaluators(base_model_config):
     if base_model_config['problem_type'] == 'multi_label_classification':
         accuracy_metric = evaluate.load('accuracy', 'multilabel')
         f1_metric = evaluate.load('f1', 'multilabel')
-    elif base_model_config['problem_type'] == 'generative_multi_label_classification':
-        return None, None
     else:
         accuracy_metric = evaluate.load('accuracy')
         f1_metric = evaluate.load('f1')
@@ -177,10 +183,5 @@ def parse_config(config):
     training_config = config['training_config']
     training_config['seed'] = seed
     data_config = config['data_config']
-    if data_config['generative']:
-        if base_model_config['problem_type'] == 'multi_label_classification':
-            base_model_config['problem_type'] = 'generative_multi_label_classification'
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
-        assert data_config['generative']
     return base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed

@@ -1,4 +1,5 @@
-from src.utils import get_data_collector, get_metrics_evaluators
+from src.utils import get_data_collector, get_metrics_evaluators, \
+    formatting_prompts_func, get_tokenizer
 from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
     check_gradients, add_modules_to_save
 
@@ -13,6 +14,7 @@ from peft import (
     prepare_model_for_kbit_training,
 )
 from transformers import TrainingArguments, Trainer
+from trl import SFTTrainer
 
 
 def train(
@@ -35,6 +37,9 @@ def train(
 
         lora_config = add_modules_to_save(model=model, lora_config=lora_config)
 
+        # TODO
+        # Add LoftQ parameter inicialization
+        # https://huggingface.co/docs/peft/conceptual_guides/lora
         lora_configuration = LoraConfig(
             **lora_config,
         )
@@ -55,14 +60,29 @@ def train(
         base_model_config=base_model_config
     )
 
-    trainer = Trainer(
-        model=model,
-        train_dataset=data_dict['train'],
-        eval_dataset=data_dict['validation'],
-        args=training_arguments,
-        compute_metrics=compute_metrics,
-        data_collator=data_collator,
-    )
+    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        tokenizer, _ = get_tokenizer(
+            base_model_config=base_model_config
+        )
+        trainer = SFTTrainer(
+            model=model,
+            train_dataset=data_dict['train'],
+            eval_dataset=data_dict['validation'],
+            formatting_func=formatting_prompts_func,
+            tokenizer=tokenizer,
+            max_seq_length=base_model_config['max_seq_length'],
+            args=training_arguments,
+            data_collator=data_collator,
+        )
+    else:
+        trainer = Trainer(
+            model=model,
+            train_dataset=data_dict['train'],
+            eval_dataset=data_dict['validation'],
+            args=training_arguments,
+            compute_metrics=compute_metrics,
+            data_collator=data_collator,
+        )
     trainer.train()
     trainer.save_model()
     config_file = 'real-config.ini'

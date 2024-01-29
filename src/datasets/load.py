@@ -1,7 +1,7 @@
 from src.datasets.prepare import prepare
 
 
-from datasets import DatasetDict
+from datasets import DatasetDict, Dataset
 from pathlib import Path
 
 
@@ -11,7 +11,7 @@ def load(base_model_config, data_config, tokenizer, data_class):
 
     personalized = data_config['personalized']
     instruct = data_config['instruct']
-
+    generative = data_config['generative']
     data_dir = Path(data_config['data_folder'])
 
     train, val, test = prepare(
@@ -23,14 +23,16 @@ def load(base_model_config, data_config, tokenizer, data_class):
         tokenizer=tokenizer,
         personalized=personalized,
         instruct=instruct,
-        data_class=data_class
+        generative=generative,
     )
-
+    train = Dataset.from_list(train)
+    val = Dataset.from_list(val)
+    test = Dataset.from_list(test)
     data_dict = DatasetDict(
             {
                 "train": train,
-                "test": test,
                 "validation": val,
+                "test": test,
             }
         )
     num_labels = len(data_class.labels)

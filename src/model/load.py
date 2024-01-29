@@ -1,3 +1,6 @@
+import inspect
+
+
 from transformers import (
     AutoModelForSequenceClassification,
     AutoModelForCausalLM,
@@ -49,31 +52,31 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
     that is used in AutoModelForSequenceClassification for multilabel classification.
     """
     base_model_name = base_model_config['pretrained_model_name_or_path']
-    num_labels = base_model_config['num_labels']
     problem_type = base_model_config['problem_type']
-    attn_implementation = base_model_config['attn_implementation']
     quantization_config = _update_quantization_config(
         base_model_name=base_model_name,
         quantization_config=quantization_config
     )
     quantization_config = _bnb_quantization_config(quantization_config)
     if problem_type == 'generative_multi_label_classification':
+        argnames = set(inspect.getargspec(AutoModelForCausalLM.from_pretrained)[0])
+        kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
         model = AutoModelForCausalLM.from_pretrained(
-            pretrained_model_name_or_path=base_model_name,
+            **kwargs,
             device_map="auto",
             quantization_config=quantization_config,
-            num_labels=num_labels,
-            problem_type=problem_type,
-            attn_implementation=attn_implementation,
+            attn_implementation=base_model_config['attn_implementation'],
         )
     else:
+        argnames = set(inspect.getargspec(AutoModelForSequenceClassification.from_pretrained)[0])
+        kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
         model = AutoModelForSequenceClassification.from_pretrained(
-            pretrained_model_name_or_path=base_model_name,
+            **kwargs,
             device_map="auto",
             quantization_config=quantization_config,
-            num_labels=num_labels,
-            problem_type=problem_type,
-            attn_implementation=attn_implementation,
+            num_labels=base_model_config['num_labels'],
+            problem_type=base_model_config['problem_type'],
+            attn_implementation=base_model_config['attn_implementation'],
         )
     if pad_token_id is not None:
         model.config.pad_token_id = pad_token_id

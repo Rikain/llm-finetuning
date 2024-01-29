@@ -184,7 +184,8 @@ def prepare(
     test_csv_path: Path  = Path("data/personalized/test.csv"),
     mask_inputs: bool = False,
     ignore_index: int = -1,
-    encode_labels: bool = False
+    encode_labels: bool = False,
+    generative: bool = False,
 ) -> None:
     """Prepare a CSV dataset for instruction tuning.
 
@@ -268,7 +269,8 @@ def prepare(
     
 
 def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool, ignore_index: int,
-                   personalized: bool, instruct: bool, encode_labels: bool, data_class: MetaDataClass) -> dict:
+                   personalized: bool, instruct: bool, generative: bool, encode_labels: bool,
+                   data_class: MetaDataClass) -> dict:
     """Processes a single sample.
 
     Each sample in the dataset consists of:
@@ -297,7 +299,7 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
         labels = list(labels.values())
     else:
         labels = [key for key, val in labels.items() if val > 0]
-    
+
     return {
         **example,
         # "input_ids": encoded_full_prompt_and_response,

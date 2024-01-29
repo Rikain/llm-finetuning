@@ -40,8 +40,8 @@ def get_classification_head_name(model):
 
 
 def check_gradients(model, lora_config):
-    classification_head_name = get_classification_head_name(model)
     if lora_config['task_type'] == 'SEQ_CLS':
+        classification_head_name = get_classification_head_name(model)
         if classification_head_name == 'score':
             assert not model.base_model.model.score.original_module.weight.requires_grad
             assert model.base_model.model.score.modules_to_save["default"].weight.requires_grad
@@ -83,6 +83,9 @@ def find_all_linear_names(model, quantization_config):
     elif hasattr(model, 'score'):
         # (Expected for LlamaForSequenceClassification)
         possible_modules_to_save = ['score']
+    elif hasattr(model, 'lm_head'):
+        # (Expected for LlamaForCasualLM)
+        possible_modules_to_save = []
     else:
         # Propably a class not accounted for.
         raise Exception('Propably a class not accounted for.')
