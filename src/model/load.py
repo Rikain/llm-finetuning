@@ -65,6 +65,7 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
             **kwargs,
             device_map="auto",
             quantization_config=quantization_config,
+            attn_implementation=base_model_config['attn_implementation'],
         )
     else:
         argnames = set(inspect.getargspec(AutoModelForSequenceClassification.from_pretrained)[0])
@@ -73,6 +74,9 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
             **kwargs,
             device_map="auto",
             quantization_config=quantization_config,
+            num_labels=base_model_config['num_labels'],
+            problem_type=base_model_config['problem_type'],
+            attn_implementation=base_model_config['attn_implementation'],
         )
     if pad_token_id is not None:
         model.config.pad_token_id = pad_token_id
