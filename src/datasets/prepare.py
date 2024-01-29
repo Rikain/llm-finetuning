@@ -27,13 +27,13 @@ class MetaDataClass:
 
 class GoEmo(MetaDataClass):
 
-    labels = [
+    labels = sorted([
         'admiration','amusement', 'anger', 'annoyance', 'approval', 'caring',
         'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval',
         'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief',
         'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief',
         'remorse', 'sadness', 'surprise', 'neutral'
-    ]
+    ])
     columns = ["rater_id", "text"] + labels
 
     def __init__(self):
@@ -76,10 +76,10 @@ class GoEmo(MetaDataClass):
 
 class Unhealthy(MetaDataClass):
 
-    labels = [
+    labels = sorted([
         "antagonize", "condescending" , "dismissive", "generalisation",
         "generalisation_unfair", "healthy", "hostile", "sarcastic"
-    ]
+    ])
     
     columns = ["_unit_id", "comment", "_trust", "_worker_id"] + labels
 
@@ -124,13 +124,13 @@ class Unhealthy(MetaDataClass):
 
 class Docanno(MetaDataClass):
 
-    labels = [
+    labels = sorted([
         'inspiring', 'interesting', 'offensive_to_someone', 'negative',
         'offensive_to_me', 'political', 'positive', 'sadness', 'calm',
         'fear', 'compassion', 'disgust', 'vulgar', 'surprise', 'embarrasing',
         'anger', 'understandable', 'ironic', 'need_more_information',
         'happiness', 'delight', 'funny_to_someone', 'funny_to_me'
-    ]
+    ])
 
     columns = ['text_id', 'user_id', 'fold', 'text'] + labels
 
@@ -293,7 +293,10 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
     labels = {label: float(example[label]) for label in data_class.labels}
     # When `encode_labels` is True => the labels are the list of 0s and 1s of emotions
     # Otherwise => the labels are concatenated into a single string
-    labels = list(labels.values()) if encode_labels else ", ".join(labels.keys())
+    if encode_labels:
+        labels = list(labels.values())
+    else:
+        labels = [key for key, val in labels.items() if val > 0]
     
     return {
         **example,
