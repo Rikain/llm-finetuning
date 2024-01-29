@@ -1,4 +1,15 @@
 data/
+<<<<<<< HEAD
 venv/
 __pycache__/
 wandb/
+=======
+__pycache__/
+venv/
+wandb/
+checkpoint*
+exclude-list.txt
+include-list.txt
+entrypoint.sh
+real-config.ini
+>>>>>>> c98f39b3621543cd32970ef74a08b38157dcf556

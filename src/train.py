@@ -4,6 +4,7 @@ from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
 
 
 import shutil
+from pathlib import Path
 
 
 from peft import (
@@ -64,7 +65,15 @@ def train(
     )
     trainer.train()
     trainer.save_model()
-    shutil.copy2('config.ini', training_config['output_dir'])
+    config_file = 'real-config.ini'
+    if not Path(config_file).is_file():
+        config_file = 'config.ini'
+    shutil.copy2(config_file, training_config['output_dir'])
+    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        # Calcualte F1 using code that measures the performance of a trained model.
+        scores = trainer.evaluate(eval_dataset=data_dict['test'])
+        print('Test_scores', scores)
+        return
     scores = trainer.evaluate(eval_dataset=data_dict['test'])
     print('Test_scores', scores)
     return
