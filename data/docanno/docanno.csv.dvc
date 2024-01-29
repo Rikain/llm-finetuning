@@ -1,0 +1,5 @@
+outs:
+- md5: a34aedcb3ca147d70dacc5df6bc1629c
+  size: 41901880
+  hash: md5
+  path: docanno.csv

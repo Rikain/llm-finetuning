@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 data/
 <<<<<<< HEAD
 venv/
@@ -5,6 +6,8 @@ __pycache__/
 wandb/
 =======
 __pycache__/
+=======
+>>>>>>> 9204492546faccc8f46385f3cd64ad231e994699
 venv/
 wandb/
 checkpoint*
@@ -12,4 +15,7 @@ exclude-list.txt
 include-list.txt
 entrypoint.sh
 real-config.ini
+<<<<<<< HEAD
 >>>>>>> c98f39b3621543cd32970ef74a08b38157dcf556
+=======
+>>>>>>> 9204492546faccc8f46385f3cd64ad231e994699

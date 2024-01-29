@@ -1,14 +1,18 @@
 """Utility functions to use across multiple independent files."""
 import ast
-from configparser import ConfigParser
-from importlib.machinery import SourceFileLoader
-from pathlib import Path
 
-
+import torch
 import evaluate
 import numpy as np
-import torch
-from transformers import AutoTokenizer, DataCollatorWithPadding, set_seed
+
+from pathlib import Path
+from configparser import ConfigParser
+
+from transformers import set_seed
+from transformers import AutoTokenizer, DataCollatorWithPadding
+
+from src.datasets import load
+from src.datasets import GoEmo, Unhealthy, Docanno
 
 
 def get_tokenizer(base_model, max_seq_length):
@@ -76,23 +80,35 @@ def prepare_configuration():
     base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed = parse_config(
             config=config
-            )
+        )
+    
+    try:
+        # Try to check if data_class has been imported
+        data_class = data_config['data_class']
+        data_class = eval(data_class)
+    except NameError:
+        raise Exception(
+            f"The dataset class `{data_class}` does not exist. "
+            "Change your `data_class` property in `config.ini` to one of src.datasets classes."
+        )
+    
     if quantization_config is not None:
         assert lora_config is not None
-    dataset_loader_folder = Path("src") / config['paths']['dataset_loader_folder']
-    dataset_functions = SourceFileLoader(
-        "dataset_module", (dataset_loader_folder / 'load.py').as_posix()
-    ).load_module()
     base_model = base_model_config['pretrained_model_name_or_path']
+
     max_seq_length = base_model_config['max_seq_length']
     tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
-    data_dict, num_labels, label_names = dataset_functions.load(
+
+    data_dict, num_labels, label_names = load(
         base_model_config,
         data_config,
-        tokenizer
+        tokenizer,
+        data_class
     )
+
     base_model_config['num_labels'] = num_labels
     base_model_config['label_names'] = label_names
+
     return seed, base_model_config, lora_config, quantization_config, \
         training_config, data_dict, pad_token_id
 
