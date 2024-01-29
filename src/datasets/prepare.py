@@ -99,7 +99,7 @@ class Unhealthy(MetaDataClass):
                     "categorization.\n\n"
                     f"### User ID:\n{example['_worker_id']}\n\n"
                     f"### Text:\n{example['comment']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
                     "### Response:"
                 )
             else:
@@ -110,7 +110,7 @@ class Unhealthy(MetaDataClass):
                     "that someone might exhibit when communicating with others. Analyze text carefully "
                     "to make an accurate categorization.\n\n"
                     f"### Text:\n{example['comment']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
                     "### Response:"
                 )
         else:
@@ -149,7 +149,7 @@ class Docanno(MetaDataClass):
                     "to make an accurate categorization.\n\n"
                     f"### User ID:\n{example['user_id']}\n\n"
                     f"### Text:\n{example['text']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
                     "### Response:"
                 )
             else:
@@ -160,7 +160,7 @@ class Docanno(MetaDataClass):
                     "communication, content, or reactions to various situations. Analyze "
                     "text carefully to make an accurate categorization.\n\n"
                     f"### Text:\n{example['text']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
+                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
                     "### Response:"
                 )
         else:
