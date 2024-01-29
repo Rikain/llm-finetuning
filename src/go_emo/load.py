@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def load(base_model_config, data_config, tokenizer):
-    base_model = base_model_config['base_model_name']
+    base_model = base_model_config['pretrained_model_name_or_path']
     max_seq_length = base_model_config['max_seq_length']
     personalized = data_config['personalized']
     instruct = data_config['instruct']
@@ -25,8 +25,8 @@ def load(base_model_config, data_config, tokenizer):
     data_dict = DatasetDict(
             {
                 "train": train,
-                "test": val,
-                "validation": test,
+                "test": test,
+                "validation": val,
             }
         )
     num_labels = len(EMOTIONS)

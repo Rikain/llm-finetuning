@@ -5,4 +5,5 @@ peft
 bitsandbytes
 wandb
 evaluate
+#flash_attn
 scikit-learn
