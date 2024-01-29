@@ -20,14 +20,11 @@ def get_tokenizer(base_model_config):
         max_seq_length=base_model_config['max_seq_length'],
         padding_side='right',
     )
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
-        tokenizer.pad_token = tokenizer.eos_token
+    if tokenizer.pad_token is None or not tokenizer.pad_token:
+        tokenizer.pad_token = tokenizer.unk_token
+        pad_token_id = tokenizer.unk_token_id
     else:
-        if tokenizer.pad_token is None or not tokenizer.pad_token:
-            tokenizer.pad_token = tokenizer.unk_token
-            pad_token_id = tokenizer.unk_token_id
-        else:
-            pad_token_id = tokenizer.pad_token_id
+        pad_token_id = tokenizer.pad_token_id
     tokenizer.padding_side = 'right'
     return tokenizer, pad_token_id
 
