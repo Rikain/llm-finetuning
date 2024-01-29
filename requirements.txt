@@ -8,3 +8,4 @@ evaluate
 flash_attn
 scikit-learn
 trl
+dvc[s3]
