@@ -14,10 +14,12 @@ from transformers import set_seed
 from transformers import AutoTokenizer, DataCollatorWithPadding
 
 from src.datasets import load
+from src.datasets.prepare import response_template
 from src.datasets import GoEmo, Unhealthy, Docanno
 
 
-def get_tokenizer(base_model, max_seq_length):
+
+def get_tokenizer(base_model_config):
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=base_model,
         padding=True,
@@ -41,12 +43,13 @@ def formatting_prompts_func(example):
     return output_texts
 
 
-def get_data_collector(base_model_config): 
-    tokenizer, _ = get_tokenizer(
-        base_model=base_model_config['pretrained_model_name_or_path'],
-        max_seq_length=base_model_config['max_seq_length']
-    )
-    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+def get_data_collector(base_model_config):
+    tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
+    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        # Creates a problem because toknizer beigns with begginging of sentence token
+        data_collator = DataCollatorForCompletionOnlyLM(tokenizer=tokenizer, response_template=tokenizer(response_template, add_special_tokens=False)['input_ids'][2:])
+    else:
+        data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     return data_collator
 
 

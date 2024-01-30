@@ -13,6 +13,10 @@ logger = logging.getLogger(__name__)
 sys.path.append(str(wd))
 
 
+# Should have those two \n because of tokenization comparisions.
+response_template = '\n\n### Response:'
+
+
 class MetaDataClass:
 
     __metaclass__ = abc.ABCMeta
@@ -53,8 +57,8 @@ class GoEmo(MetaDataClass):
                     "classification.\n\n"
                     f"### User ID:\n{example['rater_id']}\n\n"
                     f"### Text:\n{example['text']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response: "
+                    "### Emotions:\n" + "\n- ".join(cls.labels) +
+                    response_template
                 )
             else:
                 return (
@@ -62,8 +66,8 @@ class GoEmo(MetaDataClass):
                     "from the provided list. Emotions can be subtle or overt, so analyze the "
                     "text carefully to make an accurate classification.\n\n"
                     f"### Text:\n{example['text']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response: "
+                    "### Emotions:\n" + "\n- ".join(cls.labels) +
+                    response_template
                 )
         else:
             if personalized:
@@ -99,8 +103,8 @@ class Unhealthy(MetaDataClass):
                     "categorization.\n\n"
                     f"### User ID:\n{example['_worker_id']}\n\n"
                     f"### Text:\n{example['comment']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response: "
+                    "### Labels:\n" + "\n- ".join(cls.labels) +
+                    response_template
                 )
             else:
                 return (
@@ -110,8 +114,8 @@ class Unhealthy(MetaDataClass):
                     "that someone might exhibit when communicating with others. Analyze text carefully "
                     "to make an accurate categorization.\n\n"
                     f"### Text:\n{example['comment']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response: "
+                    "### Labels:\n" + "\n- ".join(cls.labels) +
+                    response_template
                 )
         else:
             if personalized:
@@ -149,8 +153,8 @@ class Docanno(MetaDataClass):
                     "to make an accurate categorization.\n\n"
                     f"### User ID:\n{example['user_id']}\n\n"
                     f"### Text:\n{example['text']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response: "
+                    "### Labels:\n" + "\n- ".join(cls.labels) +
+                    response_template
                 )
             else:
                 return (
@@ -160,8 +164,8 @@ class Docanno(MetaDataClass):
                     "communication, content, or reactions to various situations. Analyze "
                     "text carefully to make an accurate categorization.\n\n"
                     f"### Text:\n{example['text']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response: "
+                    "### Labels:\n" + "\n- ".join(cls.labels) +
+                    response_template
                 )
         else:
             if personalized:

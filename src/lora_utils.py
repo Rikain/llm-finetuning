@@ -83,7 +83,7 @@ def find_all_linear_names(model, quantization_config):
     elif hasattr(model, 'score'):
         # (Expected for LlamaForSequenceClassification)
         possible_modules_to_save = ['score']
-    elif hasattr(model, 'lm_head'):
+    elif hasattr(model, 'lm_head') or hasattr(model, 'embed_out'):
         # (Expected for LlamaForCasualLM)
         possible_modules_to_save = []
     else:
