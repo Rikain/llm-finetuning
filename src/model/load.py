@@ -4,6 +4,7 @@ import inspect
 from transformers import (
     AutoModelForSequenceClassification,
     AutoModelForCausalLM,
+    AutoModelForSeq2SeqLM,
     BitsAndBytesConfig,
     AutoConfig,
     T5Config,
@@ -31,9 +32,13 @@ def load_finetuned(
     return ft_model
 
 
-def _update_quantization_config(base_model_name, quantization_config):
+def recongnize_t5(base_model_name):
     config = AutoConfig.from_pretrained(base_model_name)
-    if isinstance(config, T5Config):
+    return isinstance(config, T5Config)
+
+
+def _update_quantization_config(base_model_name, quantization_config):
+    if recongnize_t5(base_model_name):
         quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
     else:
         quantization_config['llm_int8_skip_modules'] = ['score']
@@ -62,14 +67,24 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
     quantization_config = _bnb_quantization_config(quantization_config)
     device_index = Accelerator().process_index
     if problem_type == 'generative_multi_label_classification':
-        argnames = set(inspect.getargspec(AutoModelForCausalLM.from_pretrained)[0])
-        kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
-        model = AutoModelForCausalLM.from_pretrained(
-            **kwargs,
-            device_map={"": device_index},
-            quantization_config=quantization_config,
-            attn_implementation=base_model_config['attn_implementation'],
-        )
+        if recongnize_t5(base_model_name):
+            argnames = set(inspect.getargspec(AutoModelForSeq2SeqLM.from_pretrained)[0])
+            kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
+            model = AutoModelForSeq2SeqLM.from_pretrained(
+                **kwargs,
+                device_map={"": device_index},
+                quantization_config=quantization_config,
+                attn_implementation=base_model_config['attn_implementation'],
+            )
+        else:
+            argnames = set(inspect.getargspec(AutoModelForCausalLM.from_pretrained)[0])
+            kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
+            model = AutoModelForCausalLM.from_pretrained(
+                **kwargs,
+                device_map={"": device_index},
+                quantization_config=quantization_config,
+                attn_implementation=base_model_config['attn_implementation'],
+            )
     else:
         argnames = set(inspect.getargspec(AutoModelForSequenceClassification.from_pretrained)[0])
         kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
