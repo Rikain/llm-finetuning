@@ -20,11 +20,12 @@ from src.datasets import GoEmo, Unhealthy, Docanno
 
 
 def get_tokenizer(base_model_config):
+    
     tokenizer = AutoTokenizer.from_pretrained(
-        pretrained_model_name_or_path=base_model,
+        pretrained_model_name_or_path=base_model_config['pretrained_model_name_or_path'],
         padding=True,
         truncation=True,
-        max_seq_length=max_seq_length,
+        max_seq_length=base_model_config['max_seq_length'],
     )
     if tokenizer.pad_token is None or not tokenizer.pad_token:
         tokenizer.pad_token = tokenizer.unk_token
