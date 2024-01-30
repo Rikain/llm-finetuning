@@ -26,13 +26,12 @@ def print_trainable_parameters(model, quantization_config):
         f"All Parameters: {int(all_param):,d} || Trainable Parameters: {int(trainable_params):,d} || Trainable Parameters %: {100 * trainable_params / all_param}"
     )
 
-
 def get_classification_head_name(model):
     classification_head = None
     if hasattr(model, 'classification_head'):
         classification_head = 'classification_head'
     elif hasattr(model, 'score') or (hasattr(model.base_model, 'model') and hasattr(model.base_model.model, 'score')):
-        classification_head = 'score'
+        classification_head = 'score'        
     # elif :
     #     classification_head = 'score'
     assert classification_head is not None
@@ -51,7 +50,7 @@ def check_gradients(model, lora_config):
                 model.base_model.model.score.original_module.weight
             ))
         else:
-            # TO DO FOR T5 model
+            # TODO FOR T5 model
             return True
     return True
 

@@ -38,9 +38,11 @@ def get_tokenizer(base_model_config):
 
 def formatting_prompts_func(example):
     output_texts = []
+    print("dupa")
     for i in range(len(example['full_prompt'])):
         text = f"{example['full_prompt'][i]}{example['text_labels'][i]}"
         output_texts.append(text)
+    print(output_texts)
     return output_texts
 
 
@@ -171,7 +173,23 @@ def get_metrics_evaluators(base_model_config):
                      base_model_config['label_names']], per_label_f1['f1'].tolist())
             )
         return metrics
-    return (accuracy_metric, f1_metric), compute_metrics
+    
+    def compute_metrics_from_text(eval_pred):
+        ids = eval_pred[0]
+        if isinstance(ids, tuple):  # Idk why it is sometimes tuple.
+            ids = ids[0]
+        labels = eval_pred[1]
+        #TODO
+
+    
+    if base_model_config['problem_type'] == 'multi_label_classification':
+        return_metric_function = compute_metrics
+    elif base_model_config['problem_type'] == 'generative_multi_label_classification':
+        return_metric_function = compute_metrics_from_text
+    else:
+        return_metric_function = None
+        
+    return (accuracy_metric, f1_metric), return_metric_function
 
 
 def parse_config(config):
@@ -189,5 +207,12 @@ def parse_config(config):
     training_config = config['training_config']
     training_config['seed'] = seed
     data_config = config['data_config']
+    if data_config['generative']:
+        if base_model_config['problem_type'] == 'multi_label_classification':
+            base_model_config['problem_type'] = 'generative_multi_label_classification'
+    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        assert data_config['generative']
+        if lora_config is not None and lora_config['task_type'] == 'SEQ_CLS':
+            lora_config['task_type'] = 'CASUAL_LM'
     return base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed

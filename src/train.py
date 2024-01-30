@@ -17,11 +17,8 @@ from transformers import TrainingArguments, Trainer
 from trl import SFTTrainer
 
 
-def train(
+def prepare_model(
     model,
-    data_dict,
-    base_model_config,
-    training_config,
     quantization_config=None,
     lora_config=None,
 ):
@@ -34,7 +31,6 @@ def train(
                 model=model,
                 quantization_config=quantization_config
             )
-
         lora_config = add_modules_to_save(model=model, lora_config=lora_config)
 
         # TODO
@@ -51,6 +47,15 @@ def train(
             model=model,
             quantization_config=quantization_config
         )
+    return model
+
+
+def prepare_trainer(
+    model,
+    data_dict,
+    base_model_config,
+    training_config
+):
     training_arguments = TrainingArguments(
         **training_config,
     )
@@ -83,6 +88,32 @@ def train(
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
+    
+    return trainer
+
+
+def train(
+    model,
+    data_dict,
+    base_model_config,
+    training_config,
+    quantization_config=None,
+    lora_config=None,
+):
+    
+    model = prepare_model(
+        model=model,
+        quantization_config=quantization_config,
+        lora_config=lora_config,
+    )
+    
+    trainer = prepare_trainer(
+        model=model,
+        data_dict=data_dict,
+        base_model_config=base_model_config,
+        training_config=training_config
+    )
+    
     trainer.train()
     trainer.save_model()
     config_file = 'real-config.ini'
