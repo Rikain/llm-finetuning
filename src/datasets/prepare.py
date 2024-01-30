@@ -54,7 +54,7 @@ class GoEmo(MetaDataClass):
                     f"### User ID:\n{example['rater_id']}\n\n"
                     f"### Text:\n{example['text']}\n\n"
                     "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response:"
+                    "### Response: "
                 )
             else:
                 return (
@@ -63,7 +63,7 @@ class GoEmo(MetaDataClass):
                     "text carefully to make an accurate classification.\n\n"
                     f"### Text:\n{example['text']}\n\n"
                     "### Emotions:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response:"
+                    "### Response: "
                 )
         else:
             if personalized:
@@ -80,7 +80,7 @@ class Unhealthy(MetaDataClass):
         "antagonize", "condescending" , "dismissive", "generalisation",
         "generalisation_unfair", "healthy", "hostile", "sarcastic"
     ])
-    
+
     columns = ["_unit_id", "comment", "_trust", "_worker_id"] + labels
 
     def __init__(self):
@@ -100,7 +100,7 @@ class Unhealthy(MetaDataClass):
                     f"### User ID:\n{example['_worker_id']}\n\n"
                     f"### Text:\n{example['comment']}\n\n"
                     "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response:"
+                    "### Response: "
                 )
             else:
                 return (
@@ -111,7 +111,7 @@ class Unhealthy(MetaDataClass):
                     "to make an accurate categorization.\n\n"
                     f"### Text:\n{example['comment']}\n\n"
                     "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response:"
+                    "### Response: "
                 )
         else:
             if personalized:
@@ -150,7 +150,7 @@ class Docanno(MetaDataClass):
                     f"### User ID:\n{example['user_id']}\n\n"
                     f"### Text:\n{example['text']}\n\n"
                     "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response:"
+                    "### Response: "
                 )
             else:
                 return (
@@ -161,7 +161,7 @@ class Docanno(MetaDataClass):
                     "text carefully to make an accurate categorization.\n\n"
                     f"### Text:\n{example['text']}\n\n"
                     "### Labels:\n" + "\n- ".join(cls.labels) + "\n\n"
-                    "### Response:"
+                    "### Response: "
                 )
         else:
             if personalized:
@@ -184,8 +184,7 @@ def prepare(
     test_csv_path: Path  = Path("data/personalized/test.csv"),
     mask_inputs: bool = False,
     ignore_index: int = -1,
-    encode_labels: bool = False,
-    generative: bool = False,
+    generative: bool = False
 ) -> None:
     """Prepare a CSV dataset for instruction tuning.
 
@@ -206,14 +205,13 @@ def prepare(
     if not (df_val.columns.values == data_class.columns).all():
         raise ValueError(f"Val CSV columns must be {data_class.columns}, found {df_val.columns.values}")
     val_data = json.loads(df_val.to_json(orient="records", indent=4))
-    
+
     # loading train set
     df_test = pd.read_csv(test_csv_path, dtype=str).fillna("")[data_class.columns]
     if not (df_test.columns.values == data_class.columns).all():
         raise ValueError(f"Test CSV columns must be {data_class.columns}, found {df_test.columns.values}")
     test_data = json.loads(df_test.to_json(orient="records", indent=4))
-    
-    
+
     print(f"train has {len(train_data):,} samples")
     print(f"val has {len(val_data):,} samples")
     print(f"test has {len(test_data):,} samples")
@@ -228,7 +226,7 @@ def prepare(
             ignore_index=ignore_index,
             personalized=personalized,
             instruct=instruct,
-            encode_labels=encode_labels,
+            generative=generative,
             data_class=data_class
         )
         for sample in tqdm(train_data)
@@ -244,12 +242,12 @@ def prepare(
             ignore_index=ignore_index,
             personalized=personalized,
             instruct=instruct,
-            encode_labels=encode_labels,
+            generative=generative,
             data_class=data_class
         )
         for sample in tqdm(val_data)
     ]
-    
+
     print("Processing test split ...")
     test_set = [
         prepare_sample(
@@ -260,17 +258,16 @@ def prepare(
             ignore_index=ignore_index,
             personalized=personalized,
             instruct=instruct,
-            encode_labels=encode_labels,
+            generative=generative,
             data_class=data_class
         )
         for sample in tqdm(test_data)
     ]
     return train_set, val_set, test_set
-    
+
 
 def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool, ignore_index: int,
-                   personalized: bool, instruct: bool, generative: bool, encode_labels: bool,
-                   data_class: MetaDataClass) -> dict:
+                   personalized: bool, instruct: bool, generative: bool, data_class: MetaDataClass) -> dict:
     """Processes a single sample.
 
     Each sample in the dataset consists of:
@@ -292,13 +289,19 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
     encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
     # encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
 
-    labels = {label: float(example[label]) for label in data_class.labels}
-    # When `encode_labels` is True => the labels are the list of 0s and 1s of emotions
+    labels = [float(example[_label]) for _label in data_class.labels]
+    # When `generative` is True => the labels are the list of 0s and 1s of emotions
     # Otherwise => the labels are concatenated into a single string
-    if encode_labels:
-        labels = list(labels.values())
-    else:
-        labels = [key for key, val in labels.items() if val > 0]
+    if generative:
+        text_labels = [emotion for emotion, _label in zip(data_class.labels, labels) if _label]
+        text_labels = ', '.join(text_labels)
+        return {
+            **example,
+            # "input_ids": encoded_full_prompt_and_response,
+            # "input_ids_no_response": encoded_full_prompt,
+            "full_prompt": full_prompt,
+            'text_labels': text_labels,
+        }
 
     return {
         **example,

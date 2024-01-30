@@ -8,3 +8,5 @@ include-list.txt
 entrypoint.sh
 real-config.ini
 models_cache*
+__pycache__*
+*.csv

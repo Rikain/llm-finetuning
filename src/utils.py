@@ -1,12 +1,14 @@
 """Utility functions to use across multiple independent files."""
 import ast
+from pathlib import Path
+from configparser import ConfigParser
 
 import torch
 import evaluate
 import numpy as np
 
-from pathlib import Path
-from configparser import ConfigParser
+from trl import DataCollatorForCompletionOnlyLM
+
 
 from transformers import set_seed
 from transformers import AutoTokenizer, DataCollatorWithPadding
@@ -89,7 +91,7 @@ def prepare_configuration():
         training_config, data_config, seed = parse_config(
             config=config
         )
-    
+
     try:
         # Try to check if data_class has been imported
         data_class = data_config['data_class']
@@ -99,13 +101,13 @@ def prepare_configuration():
             f"The dataset class `{data_class}` does not exist. "
             "Change your `data_class` property in `config.ini` to one of src.datasets classes."
         )
-    
+
     if quantization_config is not None:
         assert lora_config is not None
     base_model = base_model_config['pretrained_model_name_or_path']
 
     max_seq_length = base_model_config['max_seq_length']
-    tokenizer, pad_token_id = get_tokenizer(base_model, max_seq_length)
+    tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
 
     data_dict, num_labels, label_names = load(
         base_model_config,

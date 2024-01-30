@@ -12,6 +12,7 @@ def load(base_model_config, data_config, tokenizer, data_class):
     personalized = data_config['personalized']
     instruct = data_config['instruct']
     generative = data_config['generative']
+
     data_dir = Path(data_config['data_folder'])
 
     train, val, test = prepare(
@@ -24,10 +25,12 @@ def load(base_model_config, data_config, tokenizer, data_class):
         personalized=personalized,
         instruct=instruct,
         generative=generative,
+        data_class=data_class,
     )
     train = Dataset.from_list(train)
     val = Dataset.from_list(val)
     test = Dataset.from_list(test)
+
     data_dict = DatasetDict(
             {
                 "train": train,
