@@ -9,6 +9,8 @@ from transformers import (
     T5Config,
 )
 from peft import PeftModel
+import torch
+from accelerate import Accelerator
 
 
 def load_finetuned(
@@ -58,12 +60,13 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
         quantization_config=quantization_config
     )
     quantization_config = _bnb_quantization_config(quantization_config)
+    device_index = Accelerator().process_index
     if problem_type == 'generative_multi_label_classification':
         argnames = set(inspect.getargspec(AutoModelForCausalLM.from_pretrained)[0])
         kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
         model = AutoModelForCausalLM.from_pretrained(
             **kwargs,
-            device_map="auto",
+            device_map={"": device_index},
             quantization_config=quantization_config,
             attn_implementation=base_model_config['attn_implementation'],
         )
@@ -72,7 +75,7 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
         kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
         model = AutoModelForSequenceClassification.from_pretrained(
             **kwargs,
-            device_map="auto",
+            device_map={"": device_index},
             quantization_config=quantization_config,
             num_labels=base_model_config['num_labels'],
             problem_type=base_model_config['problem_type'],

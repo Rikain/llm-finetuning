@@ -133,7 +133,10 @@ def get_metrics_evaluators(base_model_config):
         accuracy_metric = evaluate.load('accuracy', 'multilabel')
         f1_metric = evaluate.load('f1', 'multilabel')
     elif base_model_config['problem_type'] == 'generative_multi_label_classification':
-        return None, None
+        def compute_metrics(eval_pred):
+            print(eval_pred)
+            return
+        return None, compute_metrics
     else:
         accuracy_metric = evaluate.load('accuracy')
         f1_metric = evaluate.load('f1')
