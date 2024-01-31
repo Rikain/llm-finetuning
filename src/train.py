@@ -13,7 +13,7 @@ from peft import (
     get_peft_model,
     prepare_model_for_kbit_training,
 )
-from transformers import TrainingArguments, Trainer
+from transformers import TrainingArguments, Trainer, GenerationConfig
 from trl import SFTTrainer
 
 
@@ -67,12 +67,13 @@ def train(
         trainer = SFTTrainer(
             model=model,
             train_dataset=data_dict['train'],
-            eval_dataset=data_dict['validation'],
+            #eval_dataset=data_dict['validation'],
             formatting_func=formatting_prompts_func,
             tokenizer=tokenizer,
             max_seq_length=base_model_config['max_seq_length'],
             args=training_arguments,
             data_collator=data_collator,
+            compute_metrics=compute_metrics,
         )
     else:
         trainer = Trainer(

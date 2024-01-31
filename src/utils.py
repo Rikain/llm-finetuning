@@ -18,6 +18,8 @@ from src.datasets.prepare import response_template
 from src.datasets import GoEmo, Unhealthy, Docanno
 
 
+import warnings
+
 
 def get_tokenizer(base_model_config):
     tokenizer = AutoTokenizer.from_pretrained(
@@ -134,6 +136,32 @@ def get_metrics_evaluators(base_model_config):
         f1_metric = evaluate.load('f1', 'multilabel')
     elif base_model_config['problem_type'] == 'generative_multi_label_classification':
         return None, None
+        tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
+        response_token_ids = tokenizer.encode(response_template, add_special_tokens=False)
+        def compute_metrics(eval_pred):
+            tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
+            logits, labels = eval_pred
+            for i in range(len(labels)):
+                response_token_ids_start_idx = None
+
+                for idx in torch.where(labels[i] == response_token_ids[0])[0]:
+                    # `response_token_ids` is `'### Response:\n'`, here we are just making sure that the token IDs match
+                    if (
+                        response_token_ids == labels[i][idx : idx + len(response_token_ids)].tolist()
+                    ):
+                        response_token_ids_start_idx = idx
+
+                if response_token_ids_start_idx is None:
+                    warnings.warn(
+                        f"This shouldn't have happened. Your eval loss is propably wrong."
+                    )
+                else:
+                    response_token_ids_end_idx = response_token_ids_start_idx + len(response_token_ids)
+                    logits[i] = logits[i][response_token_ids_end_idx:]
+                    labels[i] = labels[i][response_token_ids_end_idx:]
+            loss = torch.nn.functional.cross_entropy(logits, labels)
+            return {'loss': loss}
+        return response_token_ids, compute_metrics
     else:
         accuracy_metric = evaluate.load('accuracy')
         f1_metric = evaluate.load('f1')
