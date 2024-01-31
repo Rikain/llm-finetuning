@@ -38,11 +38,9 @@ def get_tokenizer(base_model_config):
 
 def formatting_prompts_func(example):
     output_texts = []
-    print("dupa")
     for i in range(len(example['full_prompt'])):
         text = f"{example['full_prompt'][i]}{example['text_labels'][i]}"
         output_texts.append(text)
-    print(output_texts)
     return output_texts
 
 
