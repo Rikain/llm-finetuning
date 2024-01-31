@@ -1,0 +1,6 @@
+outs:
+- md5: 266c4f148d2d3b687a7dbb5362766849.dir
+  size: 8103282
+  nfiles: 3
+  hash: md5
+  path: aggregated

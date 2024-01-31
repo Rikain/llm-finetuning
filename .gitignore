@@ -11,3 +11,4 @@ models_cache*
 __pycache__*
 *.csv
 .ipynb_checkpoints/
+config.local
