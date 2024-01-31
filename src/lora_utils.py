@@ -49,7 +49,7 @@ def check_gradients(model, lora_config):
                 model.base_model.model.score.original_module.weight
             ))
         else:
-            # TO DO FOR T5 model
+            # TODO FOR T5 model
             return True
     return True
 
@@ -79,10 +79,13 @@ def find_all_linear_names(model, quantization_config):
         # (Expected for For T5ForSequenceClassification)
         possible_modules_to_save = ['dense', 'out_proj']
     elif hasattr(model, 'score'):
-        # (Expected for LlamaForSequenceClassification)
+        # (Expected for LlamaForSequenceClassification,
+        # MistralForSequenceClassification,
+        # GPTNeoXForSequenceClassification)
         possible_modules_to_save = ['score']
     elif hasattr(model, 'lm_head') or hasattr(model, 'embed_out'):
-        # (Expected for LlamaForCasualLM)
+        # (Expected for LlamaForCasualLM, MistralForCausalLM (lm_head)
+        # and for GPTNeoXForCausalLM (embed_out))
         possible_modules_to_save = []
     else:
         # Propably a class not accounted for.

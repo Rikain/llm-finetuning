@@ -26,7 +26,7 @@ class MetaDataClass:
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        pass
+        pass   
 
 
 class GoEmo(MetaDataClass):
@@ -267,6 +267,9 @@ def prepare(
         )
         for sample in tqdm(test_data)
     ]
+    #TODO 1-shot test set
+    #TODO 2-shot test set
+    
     return train_set, val_set, test_set
 
 
@@ -290,9 +293,7 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
     """
     full_prompt = data_class.generate_prompt(example, personalized, instruct)
     # full_prompt_and_response = full_prompt + example["output"]
-    encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
     # encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
-
     labels = [float(example[_label]) for _label in data_class.labels]
     # When `generative` is True => the labels are the list of 0s and 1s of emotions
     # Otherwise => the labels are concatenated into a single string
@@ -306,6 +307,8 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
             "full_prompt": full_prompt,
             'text_labels': text_labels,
         }
+
+    encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
 
     return {
         **example,
