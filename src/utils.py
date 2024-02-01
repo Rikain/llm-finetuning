@@ -14,8 +14,8 @@ from transformers import set_seed
 from transformers import AutoTokenizer, DataCollatorWithPadding
 
 from src.datasets import load
-from src.datasets.prepare import response_template
 from src.datasets import GoEmo, Unhealthy, Docanno
+from src.datasets.metaclass import MetaDataClass
 
 
 
@@ -48,7 +48,7 @@ def get_data_collector(base_model_config):
     tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
         # Creates a problem because toknizer beigns with begginging of sentence token
-        data_collator = DataCollatorForCompletionOnlyLM(tokenizer=tokenizer, response_template=tokenizer(response_template, add_special_tokens=False)['input_ids'][2:])
+        data_collator = DataCollatorForCompletionOnlyLM(tokenizer=tokenizer, response_template=tokenizer(MetaDataClass.response_template, add_special_tokens=False)['input_ids'][2:])
     else:
         data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     return data_collator

@@ -1,7 +1,7 @@
 from src.train import prepare_model, prepare_trainer
 from src.model.load import get_model
 from src.utils import prepare_configuration, seed_everything, get_tokenizer
-from src.datasets.prepare import GoEmo, Unhealthy, Docanno
+from src.datasets import GoEmo, Unhealthy, Docanno
 
 import torch
 import sys
@@ -99,7 +99,7 @@ def main_test():
 
 
     score =  evaluate_dataset(
-        data_dict["test"],
+        data_dict["test_1_shot"],
         model,
         tokenizer,
         GoEmo
