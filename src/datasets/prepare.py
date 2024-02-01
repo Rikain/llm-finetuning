@@ -127,7 +127,7 @@ def prepare(
             )
             for sample in tqdm(test_data_1)
         ]
-        
+
         print("Processing 2-shot test split ...")
         two_shot_columns = one_shot_columns + ["example2", "example2_response"]
         test_data_2 = json.loads(df_test.dropna(subset=["example1", "example2"])[data_class.columns + two_shot_columns].to_json(orient="records", indent=4))
@@ -146,7 +146,7 @@ def prepare(
             )
             for sample in tqdm(test_data_2)
         ]
-    
+
     return train_set, val_set, test_set, test_set_1, test_set_2
 
 
