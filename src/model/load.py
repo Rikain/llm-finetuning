@@ -75,6 +75,7 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
                 device_map={"": device_index},
                 quantization_config=quantization_config,
                 attn_implementation=base_model_config['attn_implementation'],
+                label_names=['saurus'],
             )
         else:
             argnames = set(inspect.getargspec(AutoModelForCausalLM.from_pretrained)[0])

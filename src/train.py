@@ -1,3 +1,4 @@
+from typing import Any
 from src.utils import get_data_collector, get_metrics_evaluators, \
     formatting_prompts_func, get_tokenizer
 from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
@@ -72,7 +73,7 @@ def prepare_trainer(
         trainer = SFTTrainer(
             model=model,
             train_dataset=data_dict['train'],
-            #eval_dataset=data_dict['validation'],
+            eval_dataset=data_dict['validation'],
             formatting_func=formatting_prompts_func,
             tokenizer=tokenizer,
             max_seq_length=base_model_config['max_seq_length'],
@@ -80,6 +81,9 @@ def prepare_trainer(
             data_collator=data_collator,
             compute_metrics=compute_metrics,
         )
+        # I don't know how else to force trainer to output
+        # evaluation loss.
+        trainer.can_return_loss = lambda **_: True
     else:
         trainer = Trainer(
             model=model,
@@ -89,7 +93,7 @@ def prepare_trainer(
             compute_metrics=compute_metrics,
             data_collator=data_collator,
         )
-    
+
     return trainer
 
 
@@ -101,31 +105,26 @@ def train(
     quantization_config=None,
     lora_config=None,
 ):
-    
+
     model = prepare_model(
         model=model,
         quantization_config=quantization_config,
         lora_config=lora_config,
     )
-    
+
     trainer = prepare_trainer(
         model=model,
         data_dict=data_dict,
         base_model_config=base_model_config,
         training_config=training_config
     )
-    
+
     trainer.train()
     trainer.save_model()
     config_file = 'real-config.ini'
     if not Path(config_file).is_file():
         config_file = 'config.ini'
     shutil.copy2(config_file, training_config['output_dir'])
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
-        # Calcualte F1 using code that measures the performance of a trained model.
-        scores = trainer.evaluate(eval_dataset=data_dict['test'])
-        print('Test_scores', scores)
-        return
     scores = trainer.evaluate(eval_dataset=data_dict['test'])
     print('Test_scores', scores)
     return
