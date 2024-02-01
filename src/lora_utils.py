@@ -26,14 +26,13 @@ def print_trainable_parameters(model, quantization_config):
         f"All Parameters: {int(all_param):,d} || Trainable Parameters: {int(trainable_params):,d} || Trainable Parameters %: {100 * trainable_params / all_param}"
     )
 
+
 def get_classification_head_name(model):
     classification_head = None
     if hasattr(model, 'classification_head'):
         classification_head = 'classification_head'
-    elif hasattr(model, 'score') or (hasattr(model.base_model, 'model') and hasattr(model.base_model.model, 'score')):
-        classification_head = 'score'        
-    # elif :
-    #     classification_head = 'score'
+    elif hasattr(model, 'score'):
+        classification_head = 'score'
     assert classification_head is not None
     return classification_head
 
@@ -80,10 +79,13 @@ def find_all_linear_names(model, quantization_config):
         # (Expected for For T5ForSequenceClassification)
         possible_modules_to_save = ['dense', 'out_proj']
     elif hasattr(model, 'score'):
-        # (Expected for LlamaForSequenceClassification)
+        # (Expected for LlamaForSequenceClassification,
+        # MistralForSequenceClassification,
+        # GPTNeoXForSequenceClassification)
         possible_modules_to_save = ['score']
     elif hasattr(model, 'lm_head') or hasattr(model, 'embed_out'):
-        # (Expected for LlamaForCasualLM)
+        # (Expected for LlamaForCasualLM, MistralForCausalLM (lm_head)
+        # and for GPTNeoXForCausalLM (embed_out))
         possible_modules_to_save = []
     else:
         # Propably a class not accounted for.

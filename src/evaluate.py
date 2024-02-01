@@ -23,7 +23,8 @@ def get_response(sample, tokenizer, model):
     out = model.generate(**model_input, max_new_tokens=64)
     response = decode_response(out, tokenizer)
     return response
-   
+
+
 def decode_response(out, tokenizer):
     return tokenizer.decode(out[0], skip_special_tokens=True)
     
@@ -49,6 +50,7 @@ def map_text_to_vector(
         if curr in labels_map:
             vector[labels_map[curr]] = 1
     return vector
+
 
 def process_one_sample(
     sample_text: str,
@@ -106,7 +108,6 @@ def main_test():
         lora_config=lora_config,
     )
     tokenizer, _ = get_tokenizer(base_model_config)
-
 
     score =  evaluate_dataset(
         data_dict["test_1_shot"],
