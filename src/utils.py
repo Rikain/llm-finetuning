@@ -38,8 +38,9 @@ def get_tokenizer(base_model_config):
 
 def formatting_prompts_func(example):
     output_texts = []
-    for i in range(len(example['full_prompt'])):
-        text = f"{example['full_prompt'][i]}{example['text_labels'][i]}"
+    #TODO
+    for i in range(len(example['prompt'])):
+        text = f"{example['prompt'][i]}{example['completion'][i]}"
         output_texts.append(text)
     return output_texts
 
@@ -179,13 +180,13 @@ def get_metrics_evaluators(base_model_config):
         labels = eval_pred[1]
         #TODO
 
-    
-    if base_model_config['problem_type'] == 'multi_label_classification':
-        return_metric_function = compute_metrics
-    elif base_model_config['problem_type'] == 'generative_multi_label_classification':
-        return_metric_function = compute_metrics_from_text
-    else:
-        return_metric_function = None
+    #TODO
+    # if base_model_config['problem_type'] == 'multi_label_classification':
+    return_metric_function = compute_metrics
+    # elif base_model_config['problem_type'] == 'generative_multi_label_classification':
+    #     return_metric_function = compute_metrics_from_text
+    # else:
+    #     return_metric_function = None
         
     return (accuracy_metric, f1_metric), return_metric_function
 

@@ -1,3 +1,6 @@
 venv/
 wandb/
 __pycache__/
+.dvc/
+checkpoints_*
+notebooks/

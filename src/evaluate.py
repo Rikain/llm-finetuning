@@ -27,6 +27,16 @@ def get_response(sample, tokenizer, model):
 def decode_response(out, tokenizer):
     return tokenizer.decode(out[0], skip_special_tokens=True)
     
+
+def clean_word(word):
+    punc = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+    # punctuation
+    word = word.replace(punc, "")
+    # trailing spaces
+    word = word.strip()
+    return word
+    
+
 def map_text_to_vector(
   response: str,
   labels_map: Dict[str, int],
@@ -35,7 +45,7 @@ def map_text_to_vector(
     split_response = response.split(delimiter)
     vector = torch.zeros(len(labels_map))
     for pred_lab in split_response:
-        curr = pred_lab.strip()
+        curr = clean_word(pred_lab)
         if curr in labels_map:
             vector[labels_map[curr]] = 1
     return vector
