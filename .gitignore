@@ -8,9 +8,7 @@ real-config.ini
 models_cache*
 __pycache__*
 *.csv
-<<<<<<< HEAD
 .ipynb_checkpoints/
 config.local
-=======
 .vscode
->>>>>>> 7ea86de180d77e5fc9d02d0b5f629a43d6c83705
+.dvc

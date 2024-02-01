@@ -11,4 +11,4 @@ class MetaDataClass:
 
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool, generative: bool, n_shot: int = 0) -> str:
-        pass   
+        pass

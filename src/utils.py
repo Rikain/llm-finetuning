@@ -18,9 +18,6 @@ from src.datasets import GoEmo, Unhealthy, Docanno
 from src.datasets.metaclass import MetaDataClass
 
 
-import warnings
-
-
 def get_tokenizer(base_model_config):
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_name_or_path=base_model_config['pretrained_model_name_or_path'],
@@ -39,7 +36,6 @@ def get_tokenizer(base_model_config):
 
 def formatting_prompts_func(example):
     output_texts = []
-    #TODO
     for i in range(len(example['prompt'])):
         text = f"{example['prompt'][i]}{example['completion'][i]}"
         output_texts.append(text)
@@ -175,14 +171,8 @@ def get_metrics_evaluators(base_model_config):
             )
         return metrics
 
-    #TODO
-    # if base_model_config['problem_type'] == 'multi_label_classification':
     return_metric_function = compute_metrics
-    # elif base_model_config['problem_type'] == 'generative_multi_label_classification':
-    #     return_metric_function = compute_metrics_from_text
-    # else:
-    #     return_metric_function = None
-        
+
     return (accuracy_metric, f1_metric), return_metric_function
 
 
