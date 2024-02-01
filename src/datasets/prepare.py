@@ -1,4 +1,3 @@
-import abc
 import sys
 import json
 import logging
@@ -7,174 +6,12 @@ from tqdm import tqdm
 from pathlib import Path
 from typing import Optional
 
+from src.datasets.metaclass import MetaDataClass
+
 # support running without installing as a package
 wd = Path(__file__).parent.parent.resolve()
 logger = logging.getLogger(__name__)
 sys.path.append(str(wd))
-
-
-# Should have those two \n because of tokenization comparisions.
-response_template = '\n\n### Response:'
-
-
-class MetaDataClass:
-
-    __metaclass__ = abc.ABCMeta
-
-    def __init__(self):
-        pass
-
-    @classmethod
-    def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        pass   
-
-
-class GoEmo(MetaDataClass):
-
-    labels = sorted([
-        'admiration','amusement', 'anger', 'annoyance', 'approval', 'caring',
-        'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval',
-        'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief',
-        'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief',
-        'remorse', 'sadness', 'surprise', 'neutral'
-    ])
-    columns = ["rater_id", "text"] + labels
-
-    def __init__(self):
-        super(MetaDataClass, self).__init__()
-
-    @classmethod
-    def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        """Generates a standardized message to prompt the model with an instruction, optional input and a
-        'response' field."""
-
-        if instruct:
-            if personalized:
-                return (
-                    "Categorize the following text for the specified user by selecting the "
-                    "most appropriate emotion from the provided list. Emotions can be subtle "
-                    "or overt, so analyze the text carefully to make an accurate "
-                    "classification.\n\n"
-                    f"### User ID:\n{example['rater_id']}\n\n"
-                    f"### Text:\n{example['text']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) +
-                    response_template
-                )
-            else:
-                return (
-                    "Categorize the following text by selecting the most appropriate emotion "
-                    "from the provided list. Emotions can be subtle or overt, so analyze the "
-                    "text carefully to make an accurate classification.\n\n"
-                    f"### Text:\n{example['text']}\n\n"
-                    "### Emotions:\n" + "\n- ".join(cls.labels) +
-                    response_template
-                )
-        else:
-            if personalized:
-                return (
-                    f"{example['rater_id']}\n{example['text']}"
-                )
-            else:
-                return example['text']
-
-
-class Unhealthy(MetaDataClass):
-
-    labels = sorted([
-        "antagonize", "condescending" , "dismissive", "generalisation",
-        "generalisation_unfair", "healthy", "hostile", "sarcastic"
-    ])
-
-    columns = ["_unit_id", "comment", "_trust", "_worker_id"] + labels
-
-    def __init__(self):
-        super(MetaDataClass, self).__init__()
-
-    @classmethod
-    def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        if instruct:
-            if personalized:
-                return (
-                    "Categorize the following text for the specified user by selecting "
-                    "the most appropriate label from the provided list. Labels represent "
-                    "different types of communication styles or tones, where each category denotes "
-                    "a specific attitude or approach that someone might exhibit when communicating "
-                    "with others. Analyze text carefully to make an accurate "
-                    "categorization.\n\n"
-                    f"### User ID:\n{example['_worker_id']}\n\n"
-                    f"### Text:\n{example['comment']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) +
-                    response_template
-                )
-            else:
-                return (
-                    "Categorize the following text by selecting the most appropriate label "
-                    "from the provided list. Labels represent different types of communication "
-                    "styles or tones, where each category denotes a specific attitude or approach "
-                    "that someone might exhibit when communicating with others. Analyze text carefully "
-                    "to make an accurate categorization.\n\n"
-                    f"### Text:\n{example['comment']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) +
-                    response_template
-                )
-        else:
-            if personalized:
-                return (
-                    f"{example['_worker_id']}\n{example['comment']}"
-                )
-            else:
-                return example['comment']
-
-
-class Docanno(MetaDataClass):
-
-    labels = sorted([
-        'inspiring', 'interesting', 'offensive_to_someone', 'negative',
-        'offensive_to_me', 'political', 'positive', 'sadness', 'calm',
-        'fear', 'compassion', 'disgust', 'vulgar', 'surprise', 'embarrasing',
-        'anger', 'understandable', 'ironic', 'need_more_information',
-        'happiness', 'delight', 'funny_to_someone', 'funny_to_me'
-    ])
-
-    columns = ['text_id', 'user_id', 'fold', 'text'] + labels
-
-    def __init__(self):
-        super(MetaDataClass, self).__init__()
-
-    @classmethod
-    def generate_prompt(cls, example: dict, personalized: bool, instruct: bool) -> str:
-        if instruct:
-            if personalized:
-                return (
-                    "Categorize the following text for the specified user by selecting "
-                    "the most appropriate label from the provided list. These labels represent "
-                    "a range of emotions, attitudes, and perceptions that can be associated with "
-                    "communication, content, or reactions to various situations. Analyze text carefully "
-                    "to make an accurate categorization.\n\n"
-                    f"### User ID:\n{example['user_id']}\n\n"
-                    f"### Text:\n{example['text']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) +
-                    response_template
-                )
-            else:
-                return (
-                    "Categorize the following text by selecting the most appropriate "
-                    "label from the provided list. These labels represent a range of "
-                    "emotions, attitudes, and perceptions that can be associated with "
-                    "communication, content, or reactions to various situations. Analyze "
-                    "text carefully to make an accurate categorization.\n\n"
-                    f"### Text:\n{example['text']}\n\n"
-                    "### Labels:\n" + "\n- ".join(cls.labels) +
-                    response_template
-                )
-        else:
-            if personalized:
-                return (
-                    f"{example['user_id']}\n{example['text']}"
-                )
-            else:
-                return example['text']
-
 
 def prepare(
     base_model: str,
@@ -199,22 +36,22 @@ def prepare(
     import pandas as pd
 
     # loading train set
-    df_train = pd.read_csv(train_csv_path, dtype=str).fillna("")[data_class.columns]
-    if not (df_train.columns.values == data_class.columns).all():
-        raise ValueError(f"Train CSV columns must be {data_class.columns}, found {df_train.columns.values}")
-    train_data = json.loads(df_train.to_json(orient="records", indent=4))
+    df_train = pd.read_csv(train_csv_path, dtype=str).fillna("")
+    # if not (df_train.columns.values == data_class.columns).all():
+    #     raise ValueError(f"Train CSV columns must be {data_class.columns}, found {df_train.columns.values}")
+    train_data = json.loads(df_train[data_class.columns].to_json(orient="records", indent=4))
 
     # loading validation set
-    df_val = pd.read_csv(val_csv_path, dtype=str).fillna("")[data_class.columns]
-    if not (df_val.columns.values == data_class.columns).all():
-        raise ValueError(f"Val CSV columns must be {data_class.columns}, found {df_val.columns.values}")
-    val_data = json.loads(df_val.to_json(orient="records", indent=4))
+    df_val = pd.read_csv(val_csv_path, dtype=str).fillna("")
+    # if not (df_val.columns.values == data_class.columns).all():
+    #     raise ValueError(f"Val CSV columns must be {data_class.columns}, found {df_val.columns.values}")
+    val_data = json.loads(df_val[data_class.columns].to_json(orient="records", indent=4))
 
     # loading train set
-    df_test = pd.read_csv(test_csv_path, dtype=str).fillna("")[data_class.columns]
-    if not (df_test.columns.values == data_class.columns).all():
-        raise ValueError(f"Test CSV columns must be {data_class.columns}, found {df_test.columns.values}")
-    test_data = json.loads(df_test.to_json(orient="records", indent=4))
+    df_test = pd.read_csv(test_csv_path, dtype=str)
+    # if not (df_test.columns.values == data_class.columns).all():
+    #     raise ValueError(f"Test CSV columns must be {data_class.columns}, found {df_test.columns.values}")
+    test_data = json.loads(df_test[data_class.columns].to_json(orient="records", indent=4))
 
     print(f"train has {len(train_data):,} samples")
     print(f"val has {len(val_data):,} samples")
@@ -231,7 +68,8 @@ def prepare(
             personalized=personalized,
             instruct=instruct,
             generative=generative,
-            data_class=data_class
+            data_class=data_class,
+            n_shot=0
         )
         for sample in tqdm(train_data)
     ]
@@ -247,7 +85,8 @@ def prepare(
             personalized=personalized,
             instruct=instruct,
             generative=generative,
-            data_class=data_class
+            data_class=data_class,
+            n_shot=0
         )
         for sample in tqdm(val_data)
     ]
@@ -263,18 +102,56 @@ def prepare(
             personalized=personalized,
             instruct=instruct,
             generative=generative,
-            data_class=data_class
+            data_class=data_class,
+            n_shot=0
         )
         for sample in tqdm(test_data)
     ]
-    #TODO 1-shot test set
-    #TODO 2-shot test set
+    test_set_1, test_set_2 = None, None
+    if generative:
+        print("Processing 1-shot test split ...")
+        one_shot_columns = ["example1", "example1_response"]
+        test_data_1 = json.loads(df_test.dropna(subset=["example1"])[data_class.columns + one_shot_columns].to_json(orient="records", indent=4))
+        test_set_1 = [
+            prepare_sample(
+                example=sample,
+                tokenizer=tokenizer,
+                max_length=max_seq_length,
+                mask_inputs=mask_inputs,
+                ignore_index=ignore_index,
+                personalized=personalized,
+                instruct=instruct,
+                generative=generative,
+                data_class=data_class,
+                n_shot=1
+            )
+            for sample in tqdm(test_data_1)
+        ]
+        
+        print("Processing 2-shot test split ...")
+        two_shot_columns = one_shot_columns + ["example2", "example2_response"]
+        test_data_2 = json.loads(df_test.dropna(subset=["example1", "example2"])[data_class.columns + two_shot_columns].to_json(orient="records", indent=4))
+        test_set_2 = [
+            prepare_sample(
+                example=sample,
+                tokenizer=tokenizer,
+                max_length=max_seq_length,
+                mask_inputs=mask_inputs,
+                ignore_index=ignore_index,
+                personalized=personalized,
+                instruct=instruct,
+                generative=generative,
+                data_class=data_class,
+                n_shot=2
+            )
+            for sample in tqdm(test_data_2)
+        ]
     
-    return train_set, val_set, test_set
+    return train_set, val_set, test_set, test_set_1, test_set_2
 
 
 def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool, ignore_index: int,
-                   personalized: bool, instruct: bool, generative: bool, data_class: MetaDataClass) -> dict:
+                   personalized: bool, instruct: bool, generative: bool, data_class: MetaDataClass, n_shot: int) -> dict:
     """Processes a single sample.
 
     Each sample in the dataset consists of:
@@ -291,7 +168,7 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
     Finally, both the prompt and the label get tokenized. If desired, all tokens
     in the label that correspond to the original input prompt get masked out (default).
     """
-    full_prompt = data_class.generate_prompt(example, personalized, instruct)
+    full_prompt = data_class.generate_prompt(example, personalized, instruct, generative, n_shot)
     # full_prompt_and_response = full_prompt + example["output"]
     # encoded_full_prompt_and_response = tokenizer.encode(full_prompt_and_response, eos=True, max_length=max_length)
     labels = [float(example[_label]) for _label in data_class.labels]
@@ -304,8 +181,10 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
             **example,
             # "input_ids": encoded_full_prompt_and_response,
             # "input_ids_no_response": encoded_full_prompt,
-            "full_prompt": full_prompt,
-            'text_labels': text_labels,
+            # "full_prompt": full_prompt,
+            # 'text_labels': text_labels,
+            "prompt": full_prompt,
+            "completion": text_labels
         }
 
     encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)

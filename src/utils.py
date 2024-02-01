@@ -14,8 +14,8 @@ from transformers import set_seed
 from transformers import AutoTokenizer, DataCollatorWithPadding
 
 from src.datasets import load
-from src.datasets.prepare import response_template
 from src.datasets import GoEmo, Unhealthy, Docanno
+from src.datasets.metaclass import MetaDataClass
 
 
 import warnings
@@ -39,8 +39,9 @@ def get_tokenizer(base_model_config):
 
 def formatting_prompts_func(example):
     output_texts = []
-    for i in range(len(example['full_prompt'])):
-        text = f"{example['full_prompt'][i]}{example['text_labels'][i]}"
+    #TODO
+    for i in range(len(example['prompt'])):
+        text = f"{example['prompt'][i]}{example['completion'][i]}"
         output_texts.append(text)
     return output_texts
 
@@ -49,7 +50,7 @@ def get_data_collector(base_model_config):
     tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
         # Creates a problem because toknizer beigns with begginging of sentence token
-        data_collator = DataCollatorForCompletionOnlyLM(tokenizer=tokenizer, response_template=tokenizer(response_template, add_special_tokens=False)['input_ids'][2:])
+        data_collator = DataCollatorForCompletionOnlyLM(tokenizer=tokenizer, response_template=tokenizer(MetaDataClass.response_template, add_special_tokens=False)['input_ids'][2:])
     else:
         data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     return data_collator
@@ -174,7 +175,15 @@ def get_metrics_evaluators(base_model_config):
             )
         return metrics
 
-    return (accuracy_metric, f1_metric), compute_metrics
+    #TODO
+    # if base_model_config['problem_type'] == 'multi_label_classification':
+    return_metric_function = compute_metrics
+    # elif base_model_config['problem_type'] == 'generative_multi_label_classification':
+    #     return_metric_function = compute_metrics_from_text
+    # else:
+    #     return_metric_function = None
+        
+    return (accuracy_metric, f1_metric), return_metric_function
 
 
 def parse_config(config):

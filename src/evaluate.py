@@ -1,7 +1,7 @@
 from src.train import prepare_model, prepare_trainer
 from src.model.load import get_model
 from src.utils import prepare_configuration, seed_everything, get_tokenizer
-from src.datasets.prepare import GoEmo, Unhealthy, Docanno
+from src.datasets import GoEmo, Unhealthy, Docanno
 
 import torch
 import sys
@@ -27,7 +27,16 @@ def get_response(sample, tokenizer, model):
 
 def decode_response(out, tokenizer):
     return tokenizer.decode(out[0], skip_special_tokens=True)
+    
 
+def clean_word(word):
+    punc = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
+    # punctuation
+    word = word.replace(punc, "")
+    # trailing spaces
+    word = word.strip()
+    return word
+    
 
 def map_text_to_vector(
   response: str,
@@ -37,7 +46,7 @@ def map_text_to_vector(
     split_response = response.split(delimiter)
     vector = torch.zeros(len(labels_map))
     for pred_lab in split_response:
-        curr = pred_lab.strip()
+        curr = clean_word(pred_lab)
         if curr in labels_map:
             vector[labels_map[curr]] = 1
     return vector
@@ -101,7 +110,7 @@ def main_test():
     tokenizer, _ = get_tokenizer(base_model_config)
 
     score =  evaluate_dataset(
-        data_dict["test"],
+        data_dict["test_1_shot"],
         model,
         tokenizer,
         GoEmo
