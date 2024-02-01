@@ -4,6 +4,8 @@ from src.utils import prepare_configuration, seed_everything, get_tokenizer
 from src.datasets import GoEmo, Unhealthy, Docanno
 
 import torch
+from torchmetrics import F1Score
+from torch.utils.data import DataLoader
 import sys
 from tqdm import tqdm
 from typing import Dict, Union, List, Any
@@ -18,16 +20,13 @@ sys.path.append(str(wd))
 
 
 
-def get_response(sample, tokenizer, model):
-    model_input = tokenizer([sample], return_tensors="pt", padding=True).to("cuda")
-    out = model.generate(**model_input, max_new_tokens=64)
-    response = decode_response(out, tokenizer)
-    return response
+def get_responses(batch, tokenizer, model):
+    model_input = tokenizer(batch, return_tensors="pt", padding=True).to("cuda")
+    out = model.generate(**model_input, max_new_tokens=16)
+    out = out[:, model_input["input_ids"].shape[1]:]
+    responses = tokenizer.batch_decode(out, skip_special_tokens=True)
+    return responses
 
-
-def decode_response(out, tokenizer):
-    return tokenizer.decode(out[0], skip_special_tokens=True)
-    
 
 def clean_word(word):
     punc = '''!()-[]{};:'"\,<>./?@#$%^&*_~'''
@@ -38,13 +37,22 @@ def clean_word(word):
     return word
     
 
-def map_text_to_vector(
-  response: str,
-  labels_map: Dict[str, int],
-  delimiter: str = ',',
+def map_texts_to_vectors(
+    responses: List[str],
+    labels_map: Dict[str, int],
+    delimiter: str = ',',
+):
+    batch_matrix = [single_mapping(response, labels_map, delimiter) for response in responses]
+    return torch.tensor(batch_matrix)
+
+
+def single_mapping(
+    response: str,
+    labels_map: Dict[str, int],
+    delimiter: str = ',',
 ):
     split_response = response.split(delimiter)
-    vector = torch.zeros(len(labels_map))
+    vector = [0 for _ in range(len(labels_map))]
     for pred_lab in split_response:
         curr = clean_word(pred_lab)
         if curr in labels_map:
@@ -53,17 +61,15 @@ def map_text_to_vector(
 
 
 def process_one_sample(
-    sample_text: str,
-    sample_label: str,
+    batch: List[str],
     tokenizer: Any,
     model: Any,
     labels_map: Dict[str, int],
     delimiter: str = ',',
 ):
-    ground_truth = map_text_to_vector(sample_label, labels_map, delimiter)
-    response = get_response(sample_text, tokenizer, model)
-    prediction = map_text_to_vector(response, labels_map, delimiter)
-    return ground_truth, prediction
+    responses = get_responses(batch, tokenizer, model)
+    prediction = map_texts_to_vectors(responses, labels_map, delimiter)
+    return prediction
 
 
 def evaluate_dataset(
@@ -75,25 +81,27 @@ def evaluate_dataset(
 ):
     
     labels_map =  {label: i for i, label in enumerate(data_class.labels)} 
-    true = torch.empty((len(dataset),len(labels_map)))
-    pred = torch.empty((len(dataset),len(labels_map)))
-    
-    for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
-        sample_text = sample["text"]
-        sample_label = sample["text_labels"]
-        sample_true, sample_pred = process_one_sample(
-            sample_text,
-            sample_label,
+    f1 = F1Score(task="multilabel", num_labels = len(labels_map), average="macro")
+    dataloader = DataLoader(dataset, batch_size=8)
+    for batch in tqdm(dataloader):
+        text_batch = batch["full_prompt"]
+        true_labels = torch.stack(batch["hot_labels"], dim=1)
+
+        preds = process_one_sample(
+            text_batch,
             tokenizer,
             model,
             labels_map,
             delimiter
         )
-        true[i] = sample_true
-        pred[i] = sample_pred
+        
+        f1.update(preds, true_labels)
+        
+    result = f1.compute()
+    print(result)
 
-    f1 = f1_score(true, pred, average='macro')
-    return f1
+    # f1 = f1_score(true, pred, average='macro')
+    return result
 
 
 def main_test():
@@ -107,10 +115,10 @@ def main_test():
         quantization_config=quantization_config,
         lora_config=lora_config,
     )
-    tokenizer, _ = get_tokenizer(base_model_config)
+    tokenizer, _ = get_tokenizer(base_model_config, padding_side="left")
 
     score =  evaluate_dataset(
-        data_dict["test_1_shot"],
+        [data_dict["test"][i] for i in range(32)],
         model,
         tokenizer,
         GoEmo
