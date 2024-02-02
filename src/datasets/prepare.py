@@ -181,10 +181,9 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
             **example,
             # "input_ids": encoded_full_prompt_and_response,
             # "input_ids_no_response": encoded_full_prompt,
-            # "full_prompt": full_prompt,
-            # 'text_labels': text_labels,
-            "prompt": full_prompt,
-            "completion": text_labels
+            "full_prompt": full_prompt,
+            "text_labels": text_labels,
+            "hot_labels": labels,
         }
 
     encoded_full_prompt = tokenizer.encode(full_prompt, max_length=max_length)
