@@ -5,7 +5,8 @@ peft
 bitsandbytes
 wandb
 evaluate
-flash_attn
+# flash_attn
 scikit-learn
+torchmetrics
 trl
 dvc[s3]

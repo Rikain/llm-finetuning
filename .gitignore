@@ -1,6 +1,7 @@
 venv/
 wandb/
 checkpoint*
+evaluation-*
 exclude-list.txt
 include-list.txt
 entrypoint.sh
