@@ -70,7 +70,7 @@ def prepare_trainer(
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
         tokenizer, _ = get_tokenizer(
             base_model_config=base_model_config,
-            padding_side='left',
+            padding_side='right',
         )
         trainer = SFTTrainer(
             model=model,

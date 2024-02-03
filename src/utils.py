@@ -51,7 +51,7 @@ def formatting_prompts_func(example):
 
 def get_data_collector(base_model_config):
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
-        tokenizer, _ = get_tokenizer(base_model_config=base_model_config, padding_side='left')
+        tokenizer, _ = get_tokenizer(base_model_config=base_model_config, padding_side='right')
         # Creates a problem because toknizer beigns with begginging of sentence token
         data_collator = DataCollatorForCompletionOnlyLM(
             tokenizer=tokenizer,
@@ -123,7 +123,7 @@ def prepare_configuration():
         assert lora_config is not None
 
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
-        tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config, padding_side='left')
+        tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config, padding_side='right')
     else:
         tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
 
