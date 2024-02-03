@@ -207,6 +207,9 @@ def parse_config(config):
     else:
         quantization_config = None
     training_config = config['training_config']
+    base_model_config['tune_lm_head'] = training_config['tune_lm_head']
+    quantization_config['tune_lm_head'] = base_model_config['tune_lm_head']
+    lora_config['tune_lm_head'] = base_model_config['tune_lm_head']
     training_config['seed'] = seed
     data_config = config['data_config']
     if data_config['generative']:

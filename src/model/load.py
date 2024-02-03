@@ -37,11 +37,17 @@ def recongnize_t5(base_model_name):
     return isinstance(config, T5Config)
 
 
-def _update_quantization_config(base_model_name, quantization_config):
-    if recongnize_t5(base_model_name):
+def _update_quantization_config(base_model_config, quantization_config):
+    if recongnize_t5(base_model_config['pretrained_model_name_or_path']):
         quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
     else:
-        quantization_config['llm_int8_skip_modules'] = ['score']
+        if base_model_config['problem_type'] == 'generative_multi_label_classification':
+            if quantization_config['tune_lm_head']:
+                quantization_config['llm_int8_skip_modules'] = ['embed_out', 'lm_head']
+            else:
+                quantization_config['llm_int8_skip_modules'] = []
+        else:
+            quantization_config['llm_int8_skip_modules'] = ['score']
     return quantization_config
 
 
@@ -61,7 +67,7 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
     base_model_name = base_model_config['pretrained_model_name_or_path']
     problem_type = base_model_config['problem_type']
     quantization_config = _update_quantization_config(
-        base_model_name=base_model_name,
+        base_model_config=base_model_config,
         quantization_config=quantization_config
     )
     quantization_config = _bnb_quantization_config(quantization_config)
