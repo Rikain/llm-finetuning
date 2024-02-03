@@ -5,3 +5,4 @@ __pycache__/
 checkpoints_*
 notebooks/
 models_cache
+logged_responses/

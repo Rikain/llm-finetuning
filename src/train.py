@@ -3,6 +3,7 @@ from src.utils import get_data_collector, get_metrics_evaluators, \
     formatting_prompts_func, get_tokenizer
 from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
     check_gradients, add_modules_to_save
+from src.evaluate import main_test
 
 
 import shutil
@@ -129,4 +130,6 @@ def train(
     if not base_model_config['problem_type'] == 'generative_multi_label_classification':
         scores = trainer.evaluate(eval_dataset=data_dict['test'])
         print('Test_scores', scores)
+    else:
+        main_test(load_tuned=True)
     return
