@@ -42,7 +42,8 @@ def _update_quantization_config(base_model_config, quantization_config):
         quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
     else:
         if base_model_config['problem_type'] == 'generative_multi_label_classification':
-            if quantization_config['tune_lm_head']:
+            tune_lm_head = base_model_config.pop('tune_lm_head', False)
+            if tune_lm_head:
                 quantization_config['llm_int8_skip_modules'] = ['embed_out', 'lm_head']
             else:
                 quantization_config['llm_int8_skip_modules'] = []
