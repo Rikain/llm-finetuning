@@ -1,6 +1,7 @@
 venv/
 wandb/
 checkpoint*
+evaluation-*
 exclude-list.txt
 include-list.txt
 entrypoint.sh
@@ -8,7 +9,9 @@ real-config.ini
 models_cache*
 __pycache__*
 *.csv
+*.tsv
 .ipynb_checkpoints/
 config.local
 .vscode
 .dvc
+vast.sh

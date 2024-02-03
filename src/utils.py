@@ -113,6 +113,7 @@ def prepare_configuration():
         # Try to check if data_class has been imported
         data_class = data_config['data_class']
         data_class = eval(data_class)
+        data_config['data_class'] = data_class
     except NameError:
         raise Exception(
             f"The dataset class `{data_class}` does not exist. "
@@ -138,7 +139,7 @@ def prepare_configuration():
     base_model_config['label_names'] = label_names
 
     return seed, base_model_config, lora_config, quantization_config, \
-        training_config, data_dict, pad_token_id
+        training_config, data_dict, pad_token_id, data_config
 
 
 def get_metrics_evaluators(base_model_config):

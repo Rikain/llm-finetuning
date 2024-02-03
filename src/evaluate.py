@@ -11,7 +11,8 @@ from tqdm import tqdm
 from typing import Dict, Union, List, Any
 from pathlib import Path
 from datasets import Dataset
-from sklearn.metrics import f1_score
+import pandas as pd
+from pathlib import Path
 
 
 # support running without installing as a package
@@ -20,10 +21,11 @@ sys.path.append(str(wd))
 
 
 
-def get_responses(batch, tokenizer, model):
+def get_responses(batch, tokenizer, model, max_tokens):
     model_input = tokenizer(batch, return_tensors="pt", padding=True).to("cuda")
-    out = model.generate(**model_input, max_new_tokens=58)
-    out = out[:, model_input["input_ids"].shape[1]:]
+    out = model.generate(**model_input, max_new_tokens=max_tokens).to("cuda")
+    out = out[:, model_input["input_ids"].shape[1]:].to("cuda")
+
     responses = tokenizer.batch_decode(out, skip_special_tokens=True)
     return responses
 
@@ -64,12 +66,13 @@ def process_one_sample(
     batch: List[str],
     tokenizer: Any,
     model: Any,
+    max_tokens: int,
     labels_map: Dict[str, int],
     delimiter: str = ',',
 ):
-    responses = get_responses(batch, tokenizer, model)
+    responses = get_responses(batch, tokenizer, model, max_tokens)
     prediction = map_texts_to_vectors(responses, labels_map, delimiter)
-    return prediction
+    return responses, prediction
 
 
 def evaluate_dataset(
@@ -77,55 +80,71 @@ def evaluate_dataset(
     model,
     tokenizer,
     data_class,
+    out_file,
     delimiter=','
 ):
     
-    labels_map = {label: i for i, label in enumerate(data_class.labels)} 
+    labels_map =  {label: i for i, label in enumerate(data_class.labels)} 
+    max_tokens = tokenizer([", ".join(data_class.labels)], return_tensors="pt")["input_ids"].shape[1]
     f1 = F1Score(task="multilabel", num_labels = len(labels_map), average="macro")
-    dataloader = DataLoader(dataset, batch_size=64)
+    dataloader = DataLoader(dataset, batch_size=32)
+    texts_to_save = {"prompt": [], "response": [], "expected": []}
+
     for batch in tqdm(dataloader):
         text_batch = batch["full_prompt"]
         true_labels = torch.stack(batch["hot_labels"], dim=1)
 
-        preds = process_one_sample(
+        responses, preds = process_one_sample(
             text_batch,
             tokenizer,
             model,
+            max_tokens,
             labels_map,
             delimiter
         )
         
+        texts_to_save["prompt"].extend(text_batch)
+        texts_to_save["response"].extend(responses)
+        texts_to_save["expected"].extend(batch["text_labels"])
+        
         f1.update(preds, true_labels)
         
+    texts_to_save = pd.DataFrame(texts_to_save).to_csv(out_file, index=False)
     result = f1.compute()
-    print(result)
-
-    # f1 = f1_score(true, pred, average='macro')
     return result
 
 
+def evaluate_all_tests(data_dict, model, tokenizer, data_class, out_filename, out_path):
+    tests = ["test", "test_1_shot", "test_2_shot"]
+    for test in tests:
+        print("Evaluating", test, "...")
+        curr_out_file = out_path / (out_filename + "_" + test + ".csv")
+
+        score =  evaluate_dataset(
+            data_dict[test],
+            model,
+            tokenizer,
+            data_class,
+            curr_out_file
+        )
+        print("F1 Macro:", score)
+
 def main_test():
     seed, base_model_config, lora_config, quantization_config, \
-        training_config, data_dict, pad_token_id = prepare_configuration()
+        training_config, data_dict, pad_token_id, data_config = prepare_configuration()
     
     seed_everything(seed)
-    #model = get_model(base_model_config, quantization_config, pad_token_id)
-    model = load_finetuned(base_model_config=base_model_config,
-                       quantization_config=quantization_config,
-                       pad_token_id=pad_token_id,
-                       model_checkpoint_path='checkpoints_phi-2_yes_inst_yes_pers_yes_gen_right/checkpoints_phi-2_yes_inst_yes_pers_yes_gen'
-                       )
-
+    model = get_model(base_model_config, quantization_config, pad_token_id)
     tokenizer, _ = get_tokenizer(base_model_config, padding_side="left")
-
-    score =  evaluate_dataset(
-        data_dict["test"],
-        model,
-        tokenizer,
-        GoEmo
-    )
-    print(score)
+    model.eval()
     
+    out_filename = "responses"
+    if data_config["personalized"]:
+        out_filename += "_pers"
+    
+    out_path = Path(data_config["data_folder"]) / data_config["responses_dirname"]
+    out_path.mkdir(parents=True, exist_ok=True)
+    evaluate_all_tests(data_dict, model, tokenizer, data_config["data_class"], out_filename, out_path)    
 
 
 if __name__ == "__main__":

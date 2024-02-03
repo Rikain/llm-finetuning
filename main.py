@@ -5,7 +5,7 @@ from src.utils import prepare_configuration, seed_everything
 
 def main():
     seed, base_model_config, lora_config, quantization_config, \
-        training_config, data_dict, pad_token_id = prepare_configuration()
+        training_config, data_dict, pad_token_id, data_config = prepare_configuration()
 
     seed_everything(seed)
     model = get_model(base_model_config, quantization_config, pad_token_id)
