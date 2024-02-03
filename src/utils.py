@@ -38,6 +38,7 @@ def get_tokenizer(base_model_config, **tokenizer_kwargs):
         tokenizer.padding_side = tokenizer_kwargs["padding_side"]
     else:
         tokenizer.padding_side = 'right'
+    print('padding_side', tokenizer.padding_side)
     return tokenizer, pad_token_id
 
 
@@ -50,8 +51,8 @@ def formatting_prompts_func(example):
 
 
 def get_data_collector(base_model_config):
-    tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        tokenizer, _ = get_tokenizer(base_model_config=base_model_config, padding_side='left')
         # Creates a problem because toknizer beigns with begginging of sentence token
         data_collator = DataCollatorForCompletionOnlyLM(
             tokenizer=tokenizer,
@@ -61,6 +62,7 @@ def get_data_collector(base_model_config):
             )['input_ids'][2:]
         )
     else:
+        tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
         data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     return data_collator
 
@@ -121,7 +123,10 @@ def prepare_configuration():
     if quantization_config is not None:
         assert lora_config is not None
 
-    tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
+    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config, padding_side='left')
+    else:
+        tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
 
     data_dict, num_labels, label_names = load(
         base_model_config,

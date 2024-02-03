@@ -10,3 +10,4 @@ scikit-learn
 torchmetrics
 trl
 dvc[s3]
+torchmetrics

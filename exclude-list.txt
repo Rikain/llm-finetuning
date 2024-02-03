@@ -4,3 +4,4 @@ __pycache__/
 .dvc/
 checkpoints_*
 notebooks/
+models_cache

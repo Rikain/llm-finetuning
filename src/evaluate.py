@@ -1,5 +1,5 @@
-from src.train import prepare_model, prepare_trainer
-from src.model.load import get_model
+from src.train import prepare_model, prepare_trainer 
+from src.model.load import get_model, load_finetuned
 from src.utils import prepare_configuration, seed_everything, get_tokenizer
 from src.datasets import GoEmo, Unhealthy, Docanno
 
@@ -25,6 +25,7 @@ def get_responses(batch, tokenizer, model, max_tokens):
     model_input = tokenizer(batch, return_tensors="pt", padding=True).to("cuda")
     out = model.generate(**model_input, max_new_tokens=max_tokens).to("cuda")
     out = out[:, model_input["input_ids"].shape[1]:].to("cuda")
+
     responses = tokenizer.batch_decode(out, skip_special_tokens=True)
     return responses
 
@@ -88,6 +89,7 @@ def evaluate_dataset(
     f1 = F1Score(task="multilabel", num_labels = len(labels_map), average="macro")
     dataloader = DataLoader(dataset, batch_size=32)
     texts_to_save = {"prompt": [], "response": [], "expected": []}
+
     for batch in tqdm(dataloader):
         text_batch = batch["full_prompt"]
         true_labels = torch.stack(batch["hot_labels"], dim=1)
