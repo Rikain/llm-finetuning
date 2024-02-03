@@ -38,7 +38,6 @@ def get_tokenizer(base_model_config, **tokenizer_kwargs):
         tokenizer.padding_side = tokenizer_kwargs["padding_side"]
     else:
         tokenizer.padding_side = 'right'
-    print('padding_side', tokenizer.padding_side)
     return tokenizer, pad_token_id
 
 
