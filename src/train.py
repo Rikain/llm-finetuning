@@ -68,7 +68,8 @@ def prepare_trainer(
 
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
         tokenizer, _ = get_tokenizer(
-            base_model_config=base_model_config
+            base_model_config=base_model_config,
+            padding_side='left',
         )
         trainer = SFTTrainer(
             model=model,
@@ -125,6 +126,7 @@ def train(
     if not Path(config_file).is_file():
         config_file = 'config.ini'
     shutil.copy2(config_file, training_config['output_dir'])
-    scores = trainer.evaluate(eval_dataset=data_dict['test'])
-    print('Test_scores', scores)
+    if not base_model_config['problem_type'] == 'generative_multi_label_classification':
+        scores = trainer.evaluate(eval_dataset=data_dict['test'])
+        print('Test_scores', scores)
     return
