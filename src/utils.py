@@ -50,8 +50,8 @@ def formatting_prompts_func(example):
 
 
 def get_data_collector(base_model_config):
-    tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        tokenizer, _ = get_tokenizer(base_model_config=base_model_config, padding_side='right')
         # Creates a problem because toknizer beigns with begginging of sentence token
         data_collator = DataCollatorForCompletionOnlyLM(
             tokenizer=tokenizer,
@@ -61,11 +61,12 @@ def get_data_collector(base_model_config):
             )['input_ids'][2:]
         )
     else:
+        tokenizer, _ = get_tokenizer(base_model_config=base_model_config)
         data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
     return data_collator
 
 
-def read_config(config_file='real-config.ini'):
+def read_config(config_file):
     """Change config file into a dictionary.
 
     Args:
@@ -100,8 +101,8 @@ def seed_everything(seed=42):
     return
 
 
-def prepare_configuration():
-    config = read_config()
+def prepare_configuration(config_file='real-config.ini'):
+    config = read_config(config_file=config_file)
     base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed = parse_config(
             config=config
@@ -121,7 +122,10 @@ def prepare_configuration():
     if quantization_config is not None:
         assert lora_config is not None
 
-    tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
+    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config, padding_side='right')
+    else:
+        tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
 
     data_dict, num_labels, label_names = load(
         base_model_config,
@@ -203,6 +207,10 @@ def parse_config(config):
     else:
         quantization_config = None
     training_config = config['training_config']
+    tune_lm_head = training_config.pop('tune_lm_head', False)
+    base_model_config['tune_lm_head'] = tune_lm_head
+    quantization_config['tune_lm_head'] = tune_lm_head
+    lora_config['tune_lm_head'] = tune_lm_head
     training_config['seed'] = seed
     data_config = config['data_config']
     if data_config['generative']:

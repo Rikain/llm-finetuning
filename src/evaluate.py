@@ -1,5 +1,4 @@
-from src.train import prepare_model, prepare_trainer
-from src.model.load import get_model
+from src.model.load import get_model, load_finetuned
 from src.utils import prepare_configuration, seed_everything, get_tokenizer
 from src.datasets import GoEmo, Unhealthy, Docanno
 
@@ -25,6 +24,7 @@ def get_responses(batch, tokenizer, model, max_tokens):
     model_input = tokenizer(batch, return_tensors="pt", padding=True).to("cuda")
     out = model.generate(**model_input, max_new_tokens=max_tokens).to("cuda")
     out = out[:, model_input["input_ids"].shape[1]:].to("cuda")
+
     responses = tokenizer.batch_decode(out, skip_special_tokens=True)
     return responses
 
@@ -88,6 +88,7 @@ def evaluate_dataset(
     f1 = F1Score(task="multilabel", num_labels = len(labels_map), average="macro")
     dataloader = DataLoader(dataset, batch_size=32)
     texts_to_save = {"prompt": [], "response": [], "expected": []}
+
     for batch in tqdm(dataloader):
         text_batch = batch["full_prompt"]
         true_labels = torch.stack(batch["hot_labels"], dim=1)
@@ -127,20 +128,28 @@ def evaluate_all_tests(data_dict, model, tokenizer, data_class, out_filename, ou
         )
         print("F1 Macro:", score)
 
-def main_test():
+def main_test(load_tuned=False):
     seed, base_model_config, lora_config, quantization_config, \
         training_config, data_dict, pad_token_id, data_config = prepare_configuration()
     
     seed_everything(seed)
-    model = get_model(base_model_config, quantization_config, pad_token_id)
+    if load_tuned:
+        model = load_finetuned(base_model_config=base_model_config,
+                            quantization_config=quantization_config,
+                            pad_token_id=pad_token_id,
+                            model_checkpoint_path=training_config['output_dir'],
+                            )
+    else:
+        model = get_model(base_model_config, quantization_config, pad_token_id)
     tokenizer, _ = get_tokenizer(base_model_config, padding_side="left")
+
     model.eval()
     
     out_filename = "responses"
     if data_config["personalized"]:
         out_filename += "_pers"
     
-    out_path = Path(data_config["data_folder"]) / data_config["responses_dirname"]
+    out_path = Path(data_config["responses_dirname"]) / data_config["data_folder"] / training_config['output_dir']
     out_path.mkdir(parents=True, exist_ok=True)
     evaluate_all_tests(data_dict, model, tokenizer, data_config["data_class"], out_filename, out_path)    
 

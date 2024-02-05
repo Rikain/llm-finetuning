@@ -4,7 +4,7 @@ from src.datasets.metaclass import MetaDataClass
 class Unhealthy(MetaDataClass):
 
     labels = sorted([
-        "antagonize", "condescending" , "dismissive", "generalisation",
+        "antagonize", "condescending", "dismissive", "generalisation",
         "generalisation_unfair", "healthy", "hostile", "sarcastic"
     ])
 

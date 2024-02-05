@@ -3,6 +3,7 @@ from src.utils import get_data_collector, get_metrics_evaluators, \
     formatting_prompts_func, get_tokenizer
 from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
     check_gradients, add_modules_to_save
+from src.evaluate import main_test
 
 
 import shutil
@@ -68,7 +69,8 @@ def prepare_trainer(
 
     if base_model_config['problem_type'] == 'generative_multi_label_classification':
         tokenizer, _ = get_tokenizer(
-            base_model_config=base_model_config
+            base_model_config=base_model_config,
+            padding_side='right',
         )
         trainer = SFTTrainer(
             model=model,
@@ -125,6 +127,9 @@ def train(
     if not Path(config_file).is_file():
         config_file = 'config.ini'
     shutil.copy2(config_file, training_config['output_dir'])
-    scores = trainer.evaluate(eval_dataset=data_dict['test'])
-    print('Test_scores', scores)
+    if not base_model_config['problem_type'] == 'generative_multi_label_classification':
+        scores = trainer.evaluate(eval_dataset=data_dict['test'])
+        print('Test_scores', scores)
+    else:
+        main_test(load_tuned=True)
     return

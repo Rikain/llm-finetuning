@@ -3,7 +3,7 @@ from src.datasets.metaclass import MetaDataClass
 class GoEmo(MetaDataClass):
 
     labels = sorted([
-        'admiration','amusement', 'anger', 'annoyance', 'approval', 'caring',
+        'admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring',
         'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval',
         'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief',
         'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief',

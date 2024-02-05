@@ -33,6 +33,10 @@ def get_classification_head_name(model):
         classification_head = 'classification_head'
     elif hasattr(model, 'score'):
         classification_head = 'score'
+    elif hasattr(model, 'lm_head'):
+        classification_head = 'lm_head'
+    elif hasattr(model, 'embed_out'):
+        classification_head = 'embed_out'
     assert classification_head is not None
     return classification_head
 
@@ -56,7 +60,8 @@ def check_gradients(model, lora_config):
 
 def add_modules_to_save(model, lora_config):
     modules_to_save = None
-    if lora_config['task_type'] == 'SEQ_CLS':
+    tune_lm_head = lora_config.pop('tune_lm_head', False)
+    if lora_config['task_type'] == 'SEQ_CLS' or tune_lm_head:
         modules_to_save = []
         classification_head = get_classification_head_name(model)
         if classification_head == 'classification_head':
@@ -75,6 +80,7 @@ def find_all_linear_names(model, quantization_config):
     """
     Find modules to apply LoRA to.
     """
+    tune_lm_head = quantization_config.pop('tune_lm_head', False)
     if hasattr(model, 'classification_head'):
         # (Expected for For T5ForSequenceClassification)
         possible_modules_to_save = ['dense', 'out_proj']
@@ -83,10 +89,22 @@ def find_all_linear_names(model, quantization_config):
         # MistralForSequenceClassification,
         # GPTNeoXForSequenceClassification)
         possible_modules_to_save = ['score']
-    elif hasattr(model, 'lm_head') or hasattr(model, 'embed_out'):
-        # (Expected for LlamaForCasualLM, MistralForCausalLM (lm_head)
-        # and for GPTNeoXForCausalLM (embed_out))
-        possible_modules_to_save = []
+    elif hasattr(model, 'lm_head'):
+        # (Expected for LlamaForCasualLM, MistralForCausalLM)
+        if tune_lm_head:
+            possible_modules_to_save = ['lm_head']
+            param = model.lm_head.weight
+            param.data = param.data.to(torch.float32)
+        else:
+            possible_modules_to_save = []
+    elif hasattr(model, 'embed_out'):
+        # (Expected for GPTNeoXForCausalLM )
+        if tune_lm_head:
+            possible_modules_to_save = ['embed_out']
+            param = model.embed_out.weight
+            param.data = param.data.to(torch.float32)
+        else:
+            possible_modules_to_save = []
     else:
         # Propably a class not accounted for.
         raise Exception('Propably a class not accounted for.')
