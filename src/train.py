@@ -67,7 +67,7 @@ def prepare_trainer(
         base_model_config=base_model_config
     )
 
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+    if base_model_config['problem_type'] == 'generative_classification':
         tokenizer, _ = get_tokenizer(
             base_model_config=base_model_config,
             padding_side='right',
@@ -127,7 +127,7 @@ def train(
     if not Path(config_file).is_file():
         config_file = 'config.ini'
     shutil.copy2(config_file, training_config['output_dir'])
-    if not base_model_config['problem_type'] == 'generative_multi_label_classification':
+    if not base_model_config['problem_type'] == 'generative_classification':
         scores = trainer.evaluate(eval_dataset=data_dict['test'])
         print('Test_scores', scores)
     else:

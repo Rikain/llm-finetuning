@@ -50,7 +50,7 @@ def formatting_prompts_func(example):
 
 
 def get_data_collector(base_model_config):
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+    if base_model_config['problem_type'] == 'generative_classification':
         tokenizer, _ = get_tokenizer(base_model_config=base_model_config, padding_side='right')
         # Creates a problem because toknizer beigns with begginging of sentence token
         data_collator = DataCollatorForCompletionOnlyLM(
@@ -122,7 +122,7 @@ def prepare_configuration(config_file='real-config.ini'):
     if quantization_config is not None:
         assert lora_config is not None
 
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+    if base_model_config['problem_type'] == 'generative_classification':
         tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config, padding_side='right')
     else:
         tokenizer, pad_token_id = get_tokenizer(base_model_config=base_model_config)
@@ -146,7 +146,7 @@ def get_metrics_evaluators(base_model_config):
         accuracy_metric = evaluate.load('accuracy', 'multilabel')
         f1_metric = evaluate.load('f1', 'multilabel')
 
-    elif base_model_config['problem_type'] == 'generative_multi_label_classification':
+    elif base_model_config['problem_type'] == 'generative_classification':
         return None, None
     else:
         accuracy_metric = evaluate.load('accuracy')
@@ -208,15 +208,16 @@ def parse_config(config):
         quantization_config = None
     training_config = config['training_config']
     tune_lm_head = training_config.pop('tune_lm_head', False)
-    base_model_config['tune_lm_head'] = tune_lm_head
-    quantization_config['tune_lm_head'] = tune_lm_head
-    lora_config['tune_lm_head'] = tune_lm_head
+
     training_config['seed'] = seed
     data_config = config['data_config']
     if data_config['generative']:
-        if base_model_config['problem_type'] == 'multi_label_classification':
-            base_model_config['problem_type'] = 'generative_multi_label_classification'
-    if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        base_model_config['tune_lm_head'] = tune_lm_head
+        quantization_config['tune_lm_head'] = tune_lm_head
+        lora_config['tune_lm_head'] = tune_lm_head
+        if base_model_config['problem_type'] == 'multi_label_classification' or base_model_config['problem_type'] == 'single_label_classification':
+            base_model_config['problem_type'] = 'generative_classification'
+    if base_model_config['problem_type'] == 'generative_classification':
         assert data_config['generative']
         if lora_config is not None and lora_config['task_type'] == 'SEQ_CLS':
             lora_config['task_type'] = 'CASUAL_LM'

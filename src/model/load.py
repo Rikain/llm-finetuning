@@ -42,7 +42,7 @@ def _update_quantization_config(base_model_config, quantization_config):
     if recongnize_t5(base_model_config['pretrained_model_name_or_path']):
         quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
     else:
-        if base_model_config['problem_type'] == 'generative_multi_label_classification':
+        if base_model_config['problem_type'] == 'generative_classification':
             tune_lm_head = base_model_config.pop('tune_lm_head', False)
             if tune_lm_head:
                 quantization_config['llm_int8_skip_modules'] = ['embed_out', 'lm_head']
@@ -74,7 +74,7 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
     )
     quantization_config = _bnb_quantization_config(quantization_config)
     device_index = Accelerator().process_index
-    if problem_type == 'generative_multi_label_classification':
+    if problem_type == 'generative_classification':
         if recongnize_t5(base_model_name):
             argnames = set(inspect.getargspec(AutoModelForSeq2SeqLM.from_pretrained)[0])
             kwargs = {k: v for k, v in base_model_config.items() if k in argnames}
