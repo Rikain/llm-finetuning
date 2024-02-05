@@ -4,5 +4,6 @@ __pycache__/
 .dvc/
 checkpoints_*
 notebooks/
+*.dvc
 models_cache
 logged_responses/

@@ -56,42 +56,13 @@ lr_scheduler_type=cosine
 seed=42
 report_to=wandb
 
-[Mixtral 7B]
-[base_model_config]
-pretrained_model_name_or_path=mistralai/Mixtral-8x7B-v0.1
-max_seq_length=4096
-problem_type=multi_label_classification
-attn_implementation=sdpa
-
-[training_config]
-output_dir=checkpoints_mixtral_v01_yes_inst_yes_pers
-eval_accumulation_steps=32
-per_device_train_batch_size=1
-per_device_eval_batch_size=1
-gradient_accumulation_steps=32
-optim=paged_adamw_32bit
-logging_steps=50
-learning_rate=1e-4
-fp16=True
-max_grad_norm=1.0
-num_train_epochs=5
-evaluation_strategy=steps
-eval_steps=0.03
-warmup_ratio=0.05
-group_by_length=True
-save_safetensors=True
-load_best_model_at_end=True
-save_strategy=steps
-save_steps=0.03
-lr_scheduler_type=cosine
-report_to=wandb
 
 [Phi-2]
 [base_model_config]
 pretrained_model_name_or_path=microsoft/phi-2
 max_seq_length=2048
 problem_type=multi_label_classification
-; attn_implementation=sdpa
+attn_implementation=sdpa
 
 [training_config]
 output_dir=checkpoints_phi-2
@@ -117,3 +88,12 @@ lr_scheduler_type=cosine
 seed=42
 report_to=wandb
 
+[Mistral]
+[base_model_config]
+pretrained_model_name_or_path=mistralai/Mistral-7B-Instruct-v0.2
+max_seq_length=4096
+problem_type=generative_multi_label_classification
+attn_implementation=eager
+
+[training_config]
+output_dir=checkpoints_mistral

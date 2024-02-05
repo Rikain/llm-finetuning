@@ -34,7 +34,7 @@ class Docanno(MetaDataClass):
                             f"to make an accurate categorization. {response_format_instruction}\n\n"
                             f"### User ID:\n{example['user_id']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 1:
@@ -49,7 +49,7 @@ class Docanno(MetaDataClass):
                             f"### Example:\n{example['example1']}\n\n"
                             f"### Example Response:\n{example['example1_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 2:
@@ -66,7 +66,7 @@ class Docanno(MetaDataClass):
                             f"### Example 2:\n{example['example2']}\n\n"
                             f"### Example 2 Response:\n{example['example2_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
             else:
@@ -79,7 +79,7 @@ class Docanno(MetaDataClass):
                             "communication, content, or reactions to various situations. Analyze "
                             f"text carefully to make an accurate categorization. {response_format_instruction}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 1:
@@ -93,7 +93,7 @@ class Docanno(MetaDataClass):
                             f"### Example:\n{example['example1']}\n\n"
                             f"### Example Response:\n{example['example1_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 2:
@@ -109,7 +109,7 @@ class Docanno(MetaDataClass):
                             f"### Example 2:\n{example['example2']}\n\n"
                             f"### Example 2 Response:\n{example['example2_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
         else:

@@ -16,7 +16,7 @@ class Unhealthy(MetaDataClass):
     @classmethod
     def generate_prompt(cls, example: dict, personalized: bool, instruct: bool, generative: bool, n_shot: int) -> str:
         if generative:
-            response_format_instruction = "Please compose your response as a list of chosen emotions, separated by commas."
+            response_format_instruction = "Please compose your response as a list of chosen labels, separated by commas."
         else:
             response_format_instruction = ""
         if instruct:
@@ -32,7 +32,7 @@ class Unhealthy(MetaDataClass):
                             f"categorization. {response_format_instruction}\n\n"
                             f"### User ID:\n{example['_worker_id']}\n\n"
                             f"### Text:\n{example['comment']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 1:
@@ -48,7 +48,7 @@ class Unhealthy(MetaDataClass):
                             f"### Example:\n{example['example1']}\n\n"
                             f"### Example Response:\n{example['example1_response']}\n\n"
                             f"### Text:\n{example['comment']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 2:
@@ -66,7 +66,7 @@ class Unhealthy(MetaDataClass):
                             f"### Example 2:\n{example['example2']}\n\n"
                             f"### Example 2 Response:\n{example['example2_response']}\n\n"
                             f"### Text:\n{example['comment']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
             else:
@@ -79,7 +79,7 @@ class Unhealthy(MetaDataClass):
                             "that someone might exhibit when communicating with others. Analyze text carefully "
                             f"to make an accurate categorization. {response_format_instruction}\n\n"
                             f"### Text:\n{example['comment']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 1:
@@ -93,7 +93,7 @@ class Unhealthy(MetaDataClass):
                             f"### Example:\n{example['example1']}\n\n"
                             f"### Example Response:\n{example['example1_response']}\n\n"
                             f"### Text:\n{example['comment']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 2:
@@ -109,7 +109,7 @@ class Unhealthy(MetaDataClass):
                             f"### Example 2:\n{example['example2']}\n\n"
                             f"### Example 2 Response:\n{example['example2_response']}\n\n"
                             f"### Text:\n{example['comment']}\n\n"
-                            "### Labels:\n" + "\n- ".join(cls.labels) +
+                            "### Labels:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
         else:

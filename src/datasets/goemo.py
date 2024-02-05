@@ -34,7 +34,7 @@ class GoEmo(MetaDataClass):
                             f"classification. {response_format_instruction}\n\n"
                             f"### User ID:\n{example['rater_id']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Emotions:\n" + "\n- ".join(cls.labels) +
+                            "### Emotions:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 1:
@@ -48,7 +48,7 @@ class GoEmo(MetaDataClass):
                             f"### Example:\n{example['example1']}\n\n"
                             f"### Example Response:\n{example['example1_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Emotions:\n" + "\n- ".join(cls.labels) +
+                            "### Emotions:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 2:
@@ -64,7 +64,7 @@ class GoEmo(MetaDataClass):
                             f"### Example 2:\n{example['example2']}\n\n"
                             f"### Example 2 Response:\n{example['example2_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Emotions:\n" + "\n- ".join(cls.labels) +
+                            "### Emotions:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                         
@@ -76,7 +76,7 @@ class GoEmo(MetaDataClass):
                             "from the provided list. Emotions can be subtle or overt, so analyze the "
                             f"text carefully to make an accurate classification. {response_format_instruction}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Emotions:\n" + "\n- ".join(cls.labels) +
+                            "### Emotions:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 1:
@@ -88,7 +88,7 @@ class GoEmo(MetaDataClass):
                             f"### Example:\n{example['example1']}\n\n"
                             f"### Example Response:\n{example['example1_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Emotions:\n" + "\n- ".join(cls.labels) +
+                            "### Emotions:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
                     case 2:
@@ -102,7 +102,7 @@ class GoEmo(MetaDataClass):
                             f"### Example 2:\n{example['example2']}\n\n"
                             f"### Example 2 Response:\n{example['example2_response']}\n\n"
                             f"### Text:\n{example['text']}\n\n"
-                            "### Emotions:\n" + "\n- ".join(cls.labels) +
+                            "### Emotions:\n-" + "\n- ".join(cls.labels) +
                             cls.response_template
                         )
         else:
