@@ -66,7 +66,7 @@ def get_data_collector(base_model_config):
     return data_collator
 
 
-def read_config(config_file='real-config.ini'):
+def read_config(config_file):
     """Change config file into a dictionary.
 
     Args:
@@ -101,8 +101,8 @@ def seed_everything(seed=42):
     return
 
 
-def prepare_configuration():
-    config = read_config()
+def prepare_configuration(config_file='real-config.ini'):
+    config = read_config(config_file=config_file)
     base_model_config, lora_config, quantization_config, \
         training_config, data_config, seed = parse_config(
             config=config

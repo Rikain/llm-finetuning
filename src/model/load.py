@@ -25,7 +25,8 @@ def load_finetuned(
         quantization_config=quantization_config,
         pad_token_id=pad_token_id,
     )
-    ft_model = PeftModel(
+    print(base_model)
+    ft_model = PeftModel.from_pretrained(
         base_model,
         model_checkpoint_path,
     )
@@ -82,7 +83,6 @@ def get_model(base_model_config, quantization_config=None, pad_token_id=None):
                 device_map={"": device_index},
                 quantization_config=quantization_config,
                 attn_implementation=base_model_config['attn_implementation'],
-                label_names=['saurus'],
             )
         else:
             argnames = set(inspect.getargspec(AutoModelForCausalLM.from_pretrained)[0])
