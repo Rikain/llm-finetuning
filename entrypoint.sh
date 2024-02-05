@@ -4,4 +4,4 @@ source venv/bin/activate
 
 pip install -r requirements.txt
 
-python -m src.evaluate
+# python -m src.evaluate
