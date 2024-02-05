@@ -25,7 +25,6 @@ def load_finetuned(
         quantization_config=quantization_config,
         pad_token_id=pad_token_id,
     )
-    print(base_model)
     ft_model = PeftModel.from_pretrained(
         base_model,
         model_checkpoint_path,
