@@ -22,7 +22,7 @@ sys.path.append(str(wd))
 
 def get_responses(batch, tokenizer, model, max_tokens):
     model_input = tokenizer(batch, return_tensors="pt", padding=True).to("cuda")
-    out = model.generate(**model_input, max_new_tokens=max_tokens).to("cuda")
+    out = model.generate(**model_input, max_new_tokens=max_tokens, pad_token_id=tokenizer.eos_token_id).to("cuda")
     out = out[:, model_input["input_ids"].shape[1]:].to("cuda")
 
     responses = tokenizer.batch_decode(out, skip_special_tokens=True)
@@ -155,4 +155,4 @@ def main_test(load_tuned=False):
 
 
 if __name__ == "__main__":
-    main_test()
+    main_test(load_tuned=True)
