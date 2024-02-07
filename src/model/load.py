@@ -39,7 +39,14 @@ def recongnize_t5(base_model_name):
 
 def _update_quantization_config(base_model_config, quantization_config):
     if recongnize_t5(base_model_config['pretrained_model_name_or_path']):
-        quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
+        if base_model_config['problem_type'] == 'generative_classification':
+            tune_lm_head = base_model_config.pop('tune_lm_head', False)
+            if tune_lm_head:
+                quantization_config['llm_int8_skip_modules'] = ['lm_head']
+            else:
+                quantization_config['llm_int8_skip_modules'] = []
+        else:
+            quantization_config['llm_int8_skip_modules'] = ['dense', 'out_proj']
     else:
         if base_model_config['problem_type'] == 'generative_classification':
             tune_lm_head = base_model_config.pop('tune_lm_head', False)
