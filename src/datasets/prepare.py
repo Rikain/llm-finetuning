@@ -178,7 +178,7 @@ def prepare_sample(example: dict, tokenizer, max_length: int, mask_inputs: bool,
         text_labels = [emotion for emotion, _label in zip(data_class.labels, labels) if _label]
         text_labels = ', '.join(text_labels)
         return {
-            **example,
+            # **example,
             # "input_ids": encoded_full_prompt_and_response,
             # "input_ids_no_response": encoded_full_prompt,
             "full_prompt": full_prompt,

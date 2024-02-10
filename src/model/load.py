@@ -5,6 +5,7 @@ from transformers import (
     AutoModelForSequenceClassification,
     AutoModelForCausalLM,
     AutoModelForSeq2SeqLM,
+    T5ForConditionalGeneration,
     BitsAndBytesConfig,
     AutoConfig,
     T5Config,

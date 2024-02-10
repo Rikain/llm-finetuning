@@ -4,6 +4,7 @@ from src.utils import get_data_collector, get_metrics_evaluators, \
 from src.lora_utils import print_trainable_parameters, find_all_linear_names, \
     check_gradients, add_modules_to_save
 from src.evaluate import main_test
+from src.model.load import recongnize_t5
 
 
 import shutil
@@ -15,7 +16,7 @@ from peft import (
     get_peft_model,
     prepare_model_for_kbit_training,
 )
-from transformers import TrainingArguments, Trainer, GenerationConfig
+from transformers import TrainingArguments, Trainer, Seq2SeqTrainer, Seq2SeqTrainingArguments
 from trl import SFTTrainer
 
 
@@ -58,9 +59,16 @@ def prepare_trainer(
     base_model_config,
     training_config
 ):
-    training_arguments = TrainingArguments(
-        **training_config,
-    )
+    if recongnize_t5(base_model_name=base_model_config['pretrained_model_name_or_path']):
+        training_config.pop('group_by_length')
+        training_arguments = Seq2SeqTrainingArguments(
+            **training_config,
+            predict_with_generate=True,
+        )
+    else:
+        training_arguments = TrainingArguments(
+            **training_config,
+        )
     data_collator = get_data_collector(base_model_config=base_model_config)
 
     metrics, compute_metrics = get_metrics_evaluators(
@@ -72,17 +80,43 @@ def prepare_trainer(
             base_model_config=base_model_config,
             padding_side='right',
         )
-        trainer = SFTTrainer(
-            model=model,
-            train_dataset=data_dict['train'],
-            eval_dataset=data_dict['validation'],
-            formatting_func=formatting_prompts_func,
-            tokenizer=tokenizer,
-            max_seq_length=base_model_config['max_seq_length'],
-            args=training_arguments,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-        )
+        
+        if recongnize_t5(base_model_name=base_model_config['pretrained_model_name_or_path']):
+            from transformers import DataCollatorForSeq2Seq
+            data_collator = DataCollatorForSeq2Seq(tokenizer)
+            data_dict['train'] = data_dict['train'].map(lambda x: tokenizer(x["full_prompt"], truncation=True, padding="max_length", max_length=1024))
+
+            data_dict['train'] = data_dict['train'].map(lambda y: 
+                {"labels": tokenizer(y["text_labels"], truncation=True, padding="max_length", max_length=1024)['input_ids']}
+            )
+
+            data_dict['validation'] = data_dict['validation'].map(lambda x: tokenizer(x["full_prompt"], 
+                truncation=True, padding="max_length", max_length=1024))
+            data_dict['validation'] = data_dict['validation'].map(lambda y: 
+                {"labels": tokenizer(y["text_labels"], truncation=True, padding="max_length", max_length=1024)['input_ids']}
+            )
+
+            trainer = Seq2SeqTrainer(
+                model=model,
+                train_dataset=data_dict['train'],
+                eval_dataset=data_dict['validation'],
+                tokenizer=tokenizer,
+                args=training_arguments,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+            )
+        else:
+            trainer = SFTTrainer(
+                model=model,
+                train_dataset=data_dict['train'],
+                eval_dataset=data_dict['validation'],
+                formatting_func=formatting_prompts_func,
+                tokenizer=tokenizer,
+                max_seq_length=base_model_config['max_seq_length'],
+                args=training_arguments,
+                data_collator=data_collator,
+                compute_metrics=compute_metrics,
+            )
         # I don't know how else to force trainer to output
         # evaluation loss.
         trainer.can_return_loss = lambda **_: True
